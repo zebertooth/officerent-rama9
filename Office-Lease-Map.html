@@ -231,11 +231,6 @@
   .fit-partial { background: #78350f; color: #fde68a; }
   .fit-poor { background: #7f1d1d; color: #fecaca; }
   .fit-out { background: #334155; color: #94a3b8; }
-  .req-box { margin: 0 0 14px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: #142033; font-size: .82rem; }
-  .req-box h3 { margin: 0 0 8px; font-size: .95rem; font-family: Outfit, "Noto Sans SC", sans-serif; }
-  .req-box ol { margin: 0; padding-left: 1.2rem; color: var(--muted); }
-  .req-box li { margin: 3px 0; }
-  .req-box .need-total { margin-top: 8px; color: #7dd3fc; font-weight: 700; }
   .cond-box { margin: 12px 0; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #162231; }
   .cond-box h4 { margin: 0 0 8px; font-size: .9rem; color: #93c5fd; letter-spacing: .04em; text-transform: uppercase; }
   .cond-box .fit-sum { margin: 0 0 10px; font-size: .92rem; }
@@ -416,7 +411,6 @@
     <aside class="side">
       <h2 data-i18n="listTitle">Options near client site</h2>
       <p class="lead" data-i18n="listLead">Client site: 555 Soi Thale Bangkok (ซ.ทะเลบางกอก), Bang Kapi, Huai Khwang, Bangkok 10310</p>
-      <div class="req-box" id="reqBox"></div>
       <div class="cards" id="cards"></div>
     </aside>
   </div>
@@ -1419,7 +1413,6 @@ function setLang(next) {
     if (I18N[lang][k]) el.textContent = I18N[lang][k];
   });
   renderLegend();
-  renderReqBox();
   renderCards();
   refreshLiveMap();
   if (activeId && OFFICES[activeId] && !OFFICES[activeId].listOnly) openDrawer(activeId, false);
@@ -1438,16 +1431,6 @@ function renderLegend() {
     <div><span class="sw" style="background:var(--aia)"></span>AIA</div>
     <div><span class="sw" style="background:var(--mrt)"></span>${t("legendMrt")}</div>
   `;
-}
-
-function renderReqBox() {
-  const el = document.getElementById("reqBox");
-  if (!el) return;
-  const title = lang === "zh" ? "选址条件（服务型办公）" : "Site conditions (service office)";
-  const total = lang === "zh"
-    ? "合计空间需求约 230–250㎡（若办公室/仓储/会议分室）"
-    : "Combined need ≈ 230–250 sqm if office / storage / meeting are separate rooms";
-  el.innerHTML = `<h3>${title}</h3><ol>${SITE_REQUIREMENTS.map((r) => `<li>${r[lang]}</li>`).join("")}</ol><div class="need-total">${total}</div>`;
 }
 
 function renderCards() {
