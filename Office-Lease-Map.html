@@ -226,6 +226,28 @@
   .tag-agent { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 6px; border-radius:6px; background:#1e3a5f; color:#93c5fd; margin-left:6px; }
   .card .meta { color: var(--muted); font-size: .86rem; margin-top: 6px; }
   .card .price { margin-top: 8px; font-weight: 700; color: #7dd3fc; }
+  .card .fit-line { margin-top: 8px; font-size: .78rem; font-weight: 700; display: inline-block; padding: 3px 8px; border-radius: 8px; }
+  .fit-best { background: #064e3b; color: #6ee7b7; }
+  .fit-partial { background: #78350f; color: #fde68a; }
+  .fit-poor { background: #7f1d1d; color: #fecaca; }
+  .fit-out { background: #334155; color: #94a3b8; }
+  .req-box { margin: 0 0 14px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: #142033; font-size: .82rem; }
+  .req-box h3 { margin: 0 0 8px; font-size: .95rem; font-family: Outfit, "Noto Sans SC", sans-serif; }
+  .req-box ol { margin: 0; padding-left: 1.2rem; color: var(--muted); }
+  .req-box li { margin: 3px 0; }
+  .req-box .need-total { margin-top: 8px; color: #7dd3fc; font-weight: 700; }
+  .cond-box { margin: 12px 0; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #162231; }
+  .cond-box h4 { margin: 0 0 8px; font-size: .9rem; color: #93c5fd; letter-spacing: .04em; text-transform: uppercase; }
+  .cond-box .fit-sum { margin: 0 0 10px; font-size: .92rem; }
+  .cond-row { display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 8px 0; border-top: 1px solid #243044; font-size: .86rem; }
+  .cond-row:first-of-type { border-top: 0; }
+  .cond-mark { width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 800; }
+  .st-pass { background: #064e3b; color: #6ee7b7; }
+  .st-fail { background: #7f1d1d; color: #fecaca; }
+  .st-partial { background: #78350f; color: #fde68a; }
+  .st-unknown { background: #334155; color: #94a3b8; }
+  .cond-title { font-weight: 700; }
+  .cond-note { color: var(--muted); font-size: .8rem; margin-top: 2px; }
 
   /* Detail drawer */
   .drawer-backdrop {
@@ -394,6 +416,7 @@
     <aside class="side">
       <h2 data-i18n="listTitle">Options near client site</h2>
       <p class="lead" data-i18n="listLead">Client site: 555 Soi Thale Bangkok (ซ.ทะเลบางกอก), Bang Kapi, Huai Khwang, Bangkok 10310</p>
+      <div class="req-box" id="reqBox"></div>
       <div class="cards" id="cards"></div>
     </aside>
   </div>
@@ -487,6 +510,54 @@ const I18N = {
   }
 };
 
+const SITE_REQUIREMENTS = [
+  {
+    "id": "age",
+    "en": "No building completed within the last 1 year (structure proven; avoid leak risk)",
+    "zh": "不要近1年内新建楼（结构已验证，降低渗漏风险）"
+  },
+  {
+    "id": "office",
+    "en": "Office room ≈ 150 sqm",
+    "zh": "办公室约 150 平方米"
+  },
+  {
+    "id": "storage",
+    "en": "Storage ≈ 60–70 sqm",
+    "zh": "储物区约 60–70 平方米"
+  },
+  {
+    "id": "meeting",
+    "en": "Meeting room ≈ 20–30 sqm",
+    "zh": "会议室约 20–30 平方米"
+  },
+  {
+    "id": "freight",
+    "en": "Goods / freight lift available on holidays",
+    "zh": "有货梯，且节假日可使用"
+  },
+  {
+    "id": "loading",
+    "en": "Convenient loading / move-in path for goods",
+    "zh": "货运/搬迁路径方便"
+  },
+  {
+    "id": "entry",
+    "en": "Single controlled entrance / exit (security)",
+    "zh": "进出入以单一受控出入口为主（安保）"
+  },
+  {
+    "id": "transit",
+    "en": "Convenient transport (MRT / road)",
+    "zh": "交通便利（MRT / 道路）"
+  },
+  {
+    "id": "fitout",
+    "en": "No DIY partitioning by tenant — can bring own desks / furniture",
+    "zh": "租户不自行隔墙；可自行采购桌椅等家具"
+  }
+];
+
 const OFFICES = {
   sky9: {
     id: "sky9",
@@ -559,6 +630,8 @@ const OFFICES = {
         "大楼运营时间为周一至周五 08:00–18:00。若经常加班，建议安装分体空调（中央空调加班费较高）。"
       ]
     },
+    fit: {"rank":"poor","label":{"en":"Poor fit — units too small","zh":"匹配度低 — 单元偏小"},"summary":{"en":"Age OK (2021) and MRT excellent, but listed units top ~112.5 sqm — cannot cover 150 office + 60–70 storage + 20–30 meeting (~230–250 sqm).","zh":"楼龄合格（2021）且MRT优秀，但挂牌最大约112.5㎡ — 无法覆盖办公室150 + 仓储60–70 + 会议20–30（合计约230–250㎡）。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Completed 2021 (>1 year).","zh":"2021年竣工（超过1年）。"}},{"id":"office","status":"fail","note":{"en":"Listed sizes up to ~112.5 sqm — below 150.","zh":"挂牌最大约112.5㎡ — 低于150。"}},{"id":"storage","status":"fail","note":{"en":"No 60–70 sqm storage in current unit set.","zh":"现有单元无法单独提供60–70㎡仓储。"}},{"id":"meeting","status":"partial","note":{"en":"Meeting zone exists, but total area too small.","zh":"有会议区，但总面积不足。"}},{"id":"freight","status":"partial","note":{"en":"1 service lift listed — holiday use must confirm.","zh":"有1部货梯 — 节假日需确认。"}},{"id":"loading","status":"unknown","note":{"en":"Bulk move-in path not confirmed.","zh":"大宗搬迁路径未确认。"}},{"id":"entry","status":"partial","note":{"en":"Office floors controlled; retail podium has multiple doors.","zh":"办公层受控；商业裙楼多出入口。"}},{"id":"transit","status":"pass","note":{"en":"MRT Phra Ram 9 ~240 m walk.","zh":"MRT拉玛九步行约240米。"}},{"id":"fitout","status":"partial","note":{"en":"Furnished already — own desks OK, cannot add rooms without partitions.","zh":"已精装 — 可自带桌椅，但无法在不隔墙下扩房间。"}}],
     contacts: [
       {
         kind: "agent",
@@ -659,6 +732,8 @@ const OFFICES = {
         "停车：每100平方米免费1个车位；额外车位2,400泰铢/月。"
       ]
     },
+    fit: {"rank":"out","label":{"en":"Out — building too new (2025)","zh":"排除 — 楼过新（2025）"},"summary":{"en":"Fails rule #1: completed 2025 (within 1 year). Closest to client + service lift, but age rule blocks it.","zh":"不满足条件1：2025年竣工（1年内）。虽距客户最近且有货梯，但楼龄规则直接排除。"}},
+    conditions: [{"id":"age","status":"fail","note":{"en":"Completed 2025 — within last 1 year.","zh":"2025年竣工 — 近1年新楼。"}},{"id":"office","status":"partial","note":{"en":"Units ~88–300 sqm marketed — 150 possible.","zh":"市场约88–300㎡ — 150可能有。"}},{"id":"storage","status":"unknown","note":{"en":"Dedicated 60–70 storage not confirmed.","zh":"独立60–70仓储未确认。"}},{"id":"meeting","status":"partial","note":{"en":"Furnished suites include meeting rooms — size TBC.","zh":"精装含会议室 — 面积待核实。"}},{"id":"freight","status":"partial","note":{"en":"1 service lift — holiday operation must confirm.","zh":"有1部货梯 — 节假日需确认。"}},{"id":"loading","status":"unknown","note":{"en":"Loading dock path not verified.","zh":"卸货路径未核实。"}},{"id":"entry","status":"partial","note":{"en":"Destination lifts + office lobby control typical.","zh":"目的地电梯+办公门厅管控常见。"}},{"id":"transit","status":"pass","note":{"en":"Closest to client (~0.3 km) + free MRT shuttle.","zh":"距客户最近（约0.3公里）+ 免费MRT班车。"}},{"id":"fitout","status":"partial","note":{"en":"Ready-furnished — rooms set; bring/replace desks OK.","zh":"精装已有房间 — 可自购/更换桌椅。"}}],
     contacts: [
       {
         kind: "direct",
@@ -810,6 +885,8 @@ const OFFICES = {
       en: "Lowest entry rate in this comparison: THB 750/sqm (B2903). Also closest to MRT Cultural Centre.",
       zh: "本组最低单价：750泰铢/平方米（B2903）。且最靠近MRT文化中心站。"
     },
+    fit: {"rank":"best","label":{"en":"Best match among current options","zh":"当前选项中匹配度最高"},"summary":{"en":"Age OK (~2008–2011). Units 159–209 sqm can cover ~150 office + storage/meeting zones if partitions exist (B2803 / furnished). Confirm holiday freight + loading + 60–70 store.","zh":"楼龄合格（约2008–2011）。单元159–209㎡可覆盖约150办公并划分仓储/会议（B2803/精装）。需确认节假日货梯、卸货与60–70仓储。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Established tower (~2008–2011) — not <1 year new.","zh":"老牌写字楼（约2008–2011）— 非近1年新楼。"}},{"id":"office","status":"pass","note":{"en":"Units 159–209 sqm (e.g. B2201 159 ≈ 150).","zh":"现有159–209㎡（如B2201的159接近150）。"}},{"id":"storage","status":"partial","note":{"en":"No separate 60–70 store listed — use part of larger unit or ask adjacent store.","zh":"未单列60–70仓储 — 在大单元内划区或另询库房。"}},{"id":"meeting","status":"partial","note":{"en":"Furnished units show meeting rooms — confirm 20–30 sqm.","zh":"精装有会议室 — 请确认是否20–30㎡。"}},{"id":"freight","status":"partial","note":{"en":"Service/goods lift exists — holiday hours confirm with CS/Tuy.","zh":"有货梯 — 节假日向客服/ตุ้ย确认。"}},{"id":"loading","status":"partial","note":{"en":"High-rise basement loading typical — site-check recommended.","zh":"高层多地下卸货 — 建议实地看。"}},{"id":"entry","status":"partial","note":{"en":"Twin-tower complex has multiple public doors; office floors access-controlled.","zh":"双塔公共出入口多；办公层门禁管控。"}},{"id":"transit","status":"pass","note":{"en":"MRT TCC via skybridge / short walk.","zh":"MRT文化中心 skybridge/短步行。"}},{"id":"fitout","status":"pass","note":{"en":"Best: B2803 (partitions, no furniture) or furnished — no DIY walls; bring desks.","zh":"优选B2803（有隔断无家具）或精装 — 无需自隔墙；可自购桌椅。"}}],
     contacts: [
       {
         kind: "direct",
@@ -909,6 +986,8 @@ const OFFICES = {
       en: "Lowest asking rent among options (~650) — good if budget is the priority.",
       zh: "本组询价最低（约650）— 适合预算优先。"
     },
+    fit: {"rank":"poor","label":{"en":"Weak fit — usually bare shell","zh":"匹配偏弱 — 多为毛坯"},"summary":{"en":"Age/budget OK, but typical handover is bare — conflicts with no-DIY-partition rule unless landlord fits rooms first.","zh":"楼龄/价格尚可，但多为毛坯 — 与不自行隔墙冲突，除非业主先隔好。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Older New Phetchaburi tower — not <1 year.","zh":"佩奇布里老楼 — 非近1年。"}},{"id":"office","status":"partial","note":{"en":"Can target ~150 sqm — availability TBC.","zh":"可按约150询价 — 空置待确认。"}},{"id":"storage","status":"unknown","note":{"en":"60–70 storage not in current data.","zh":"无60–70仓储信息。"}},{"id":"meeting","status":"unknown","note":{"en":"Depends on fit-out.","zh":"取决于装修。"}},{"id":"freight","status":"unknown","note":{"en":"Freight / holiday lift not confirmed.","zh":"货梯/节假日未确认。"}},{"id":"loading","status":"unknown","note":{"en":"Loading TBC on site.","zh":"卸货需实地看。"}},{"id":"entry","status":"unknown","note":{"en":"Access control not verified.","zh":"门禁未核实。"}},{"id":"transit","status":"pass","note":{"en":"Near MRT Phetchaburi / ARL Makkasan.","zh":"近MRT佩奇布里/机场快线。"}},{"id":"fitout","status":"fail","note":{"en":"Usually standard/bare — DIY partition likely needed.","zh":"多为标准/毛坯 — 很可能需自隔墙。"}}],
     contacts: [
       {
         kind: "agent",
@@ -1022,6 +1101,8 @@ const OFFICES = {
       en: "Official landlord package + MRT Exit 2 — strongest transit among options if Grade A image matters.",
       zh: "业主官方资料包 + MRT Exit 2 — 若重视甲级形象与通勤，交通优势最强。"
     },
+    fit: {"rank":"partial","label":{"en":"Partial — landlord must fit rooms","zh":"部分满足 — 需业主先隔出房间"},"summary":{"en":"Age OK (2018), MRT Exit 2 excellent, service lifts exist. Cement-screed handover — ask Sopit to deliver partitioned office + store + meeting before you bring furniture.","zh":"楼龄合格（2018），MRT Exit 2优秀，有服务梯。找平交付 — 请Sopit先隔好办公+仓储+会议，再自购家具。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Opened Q3 2018 — well over 1 year.","zh":"2018年Q3开业 — 远超1年。"}},{"id":"office","status":"pass","note":{"en":"Can lease ~150 sqm — confirm vacancy with Sopit.","zh":"可租约150㎡ — 向Sopit确认空置。"}},{"id":"storage","status":"partial","note":{"en":"Possible if landlord allocates 60–70 sqm.","zh":"若业主划出60–70㎡则可行。"}},{"id":"meeting","status":"partial","note":{"en":"Possible with landlord fit-out 20–30 sqm.","zh":"需业主隔出20–30㎡会议室。"}},{"id":"freight","status":"partial","note":{"en":"Service & fireman lifts on fact sheet — confirm holiday hours.","zh":"Fact Sheet有服务/消防梯 — 确认节假日。"}},{"id":"loading","status":"pass","note":{"en":"Grade A mixed-use typically has proper loading — still site-check.","zh":"甲级综合体通常有正规卸货 — 仍建议实地。"}},{"id":"entry","status":"pass","note":{"en":"Turnstile + visitor management + destination lifts.","zh":"闸机+访客管理+目的地电梯。"}},{"id":"transit","status":"pass","note":{"en":"MRT Phetchaburi Exit 2 (Singha Complex).","zh":"MRT佩奇布里 Exit 2。"}},{"id":"fitout","status":"partial","note":{"en":"Official handover = T-bar / cement screed — landlord must partition first.","zh":"官方交付=吊顶/找平 — 需业主先隔房间。"}}],
     contacts: [
       {
         kind: "direct",
@@ -1104,6 +1185,8 @@ const OFFICES = {
         "若重视总部形象/对外品牌，地址优势明显。"
       ]
     },
+    fit: {"rank":"partial","label":{"en":"Partial — Grade A, verify fit-out","zh":"部分满足 — 甲级，需核实装修"},"summary":{"en":"Age OK. Size flexible. Confirm partitioned rooms + holiday freight with CPN.","zh":"楼龄合格。面积灵活。向CPN确认已隔房间与节假日货梯。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Not a <1 year building.","zh":"非近1年新楼。"}},{"id":"office","status":"partial","note":{"en":"Units ~105–1,500 sqm marketed — 150 possible.","zh":"市场约105–1,500㎡ — 150可能有。"}},{"id":"storage","status":"unknown","note":{"en":"Confirm dedicated store with CPN.","zh":"仓储需向CPN确认。"}},{"id":"meeting","status":"unknown","note":{"en":"Depends on unit / fit-out.","zh":"取决于单元/装修。"}},{"id":"freight","status":"unknown","note":{"en":"Confirm service lift + holiday hours.","zh":"确认货梯+节假日。"}},{"id":"loading","status":"pass","note":{"en":"Major CPN tower — loading usually planned.","zh":"CPN主力塔楼 — 通常有卸货动线。"}},{"id":"entry","status":"partial","note":{"en":"Large complex — controlled office access typical.","zh":"大体量 — 办公层通常受控。"}},{"id":"transit","status":"pass","note":{"en":"Opposite Central Rama 9 · MRT Phra Ram 9.","zh":"Central Rama 9对面 · MRT拉玛九。"}},{"id":"fitout","status":"partial","note":{"en":"Ask CPN for partitioned handover — no tenant DIY walls.","zh":"请CPN已隔断交付 — 租户不自隔墙。"}}],
     contacts: [
       {
         kind: "direct",
@@ -1177,6 +1260,8 @@ const OFFICES = {
         "可对照SKYY9（精装约1,100–1,200）与V.ONE。"
       ]
     },
+    fit: {"rank":"partial","label":{"en":"Partial — large plates, verify split","zh":"部分满足 — 大平面，需确认分割"},"summary":{"en":"Age OK (~2017). Often large floors — only fits if landlord splits ~150+store+meeting without your DIY walls.","zh":"楼龄合格（约2017）。多见大平面 — 仅当业主分割出150+仓储+会议且无需自隔墙时合适。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Built ~2017 — not <1 year.","zh":"约2017建成 — 非近1年。"}},{"id":"office","status":"partial","note":{"en":"Small ~150 unit must be confirmed.","zh":"需确认是否有约150小单元。"}},{"id":"storage","status":"unknown","note":{"en":"Storage allocation TBC.","zh":"仓储待确认。"}},{"id":"meeting","status":"unknown","note":{"en":"Meeting room TBC.","zh":"会议室待确认。"}},{"id":"freight","status":"unknown","note":{"en":"Freight / holiday lift TBC.","zh":"货梯/节假日待确认。"}},{"id":"loading","status":"partial","note":{"en":"Low-/mid-rise campus — often easier loading.","zh":"偏低层大平面 — 卸货往往更方便。"}},{"id":"entry","status":"unknown","note":{"en":"Access control TBC.","zh":"门禁待确认。"}},{"id":"transit","status":"pass","note":{"en":"Near MRT Phra Ram 9 / Central Rama 9.","zh":"近MRT拉玛九 / Central Rama 9。"}},{"id":"fitout","status":"partial","note":{"en":"Ask partitioned or furnished handover — no DIY walls.","zh":"要求已隔断或精装 — 不自隔墙。"}}],
     contacts: [
       {
         kind: "agent",
@@ -1266,6 +1351,8 @@ const OFFICES = {
         "若CW形象/规格不够，可作为甲级备选。"
       ]
     },
+    fit: {"rank":"partial","label":{"en":"Partial — Grade A near TCC","zh":"部分满足 — 文化中心甲级"},"summary":{"en":"Age OK (2014). Strong MRT. Need landlord rooms + holiday freight confirm — same pattern as other Grade A.","zh":"楼龄合格（2014）。MRT强。需业主分室+确认节假日货梯 — 与其他甲级类似。"}},
+    conditions: [{"id":"age","status":"pass","note":{"en":"Completed 2014 — not <1 year.","zh":"2014年竣工 — 非近1年。"}},{"id":"office","status":"partial","note":{"en":"~150 sqm possible on large plates — confirm vacancy.","zh":"大平面可分割约150 — 确认空置。"}},{"id":"storage","status":"unknown","note":{"en":"60–70 store TBC.","zh":"60–70仓储待确认。"}},{"id":"meeting","status":"unknown","note":{"en":"20–30 meeting TBC.","zh":"20–30会议室待确认。"}},{"id":"freight","status":"unknown","note":{"en":"Service lift / holiday hours TBC.","zh":"货梯/节假日待确认。"}},{"id":"loading","status":"partial","note":{"en":"Grade A Ratchada — loading usually available; site-check.","zh":"拉差达甲级 — 通常有卸货；建议实地。"}},{"id":"entry","status":"partial","note":{"en":"Controlled office access typical.","zh":"办公层通常门禁受控。"}},{"id":"transit","status":"pass","note":{"en":"MRT TCC ~50–250 m.","zh":"MRT文化中心约50–250米。"}},{"id":"fitout","status":"partial","note":{"en":"Ask for partitioned handover — no tenant DIY walls.","zh":"要求已隔断交付 — 租户不自隔墙。"}}],
     contacts: [
       {
         kind: "agent",
@@ -1312,6 +1399,7 @@ function setLang(next) {
     if (I18N[lang][k]) el.textContent = I18N[lang][k];
   });
   renderLegend();
+  renderReqBox();
   renderCards();
   refreshLiveMap();
   if (activeId && OFFICES[activeId] && !OFFICES[activeId].listOnly) openDrawer(activeId, false);
@@ -1332,6 +1420,16 @@ function renderLegend() {
   `;
 }
 
+function renderReqBox() {
+  const el = document.getElementById("reqBox");
+  if (!el) return;
+  const title = lang === "zh" ? "选址条件（服务型办公）" : "Site conditions (service office)";
+  const total = lang === "zh"
+    ? "合计空间需求约 230–250㎡（若办公室/仓储/会议分室）"
+    : "Combined need ≈ 230–250 sqm if office / storage / meeting are separate rooms";
+  el.innerHTML = `<h3>${title}</h3><ol>${SITE_REQUIREMENTS.map((r) => `<li>${r[lang]}</li>`).join("")}</ol><div class="need-total">${total}</div>`;
+}
+
 function renderCards() {
   const root = document.getElementById("cards");
   const order = ["sky9", "vone", "cw", "thaiSummit", "singha", "gtower", "unilever", "aia"];
@@ -1342,6 +1440,7 @@ function renderCards() {
     const contactHtml = primary
       ? `<div class="contact-line">${primary.name[lang]} · <a href="tel:${primary.phone.replace(/[^0-9+]/g,"")}">${primary.phone}</a></div>`
       : "";
+    const fitHtml = o.fit ? `<div class="fit-line fit-${o.fit.rank}">${o.fit.label[lang]}</div>` : "";
     return `
       <button class="card ${activeId === id ? "active" : ""}" type="button" data-id="${id}">
         <div class="row">
@@ -1352,6 +1451,7 @@ function renderCards() {
         ${o.distClient ? `<div class="meta">${t("fromClient")}: <b style="color:#e2e8f0">${o.distClient[lang]}</b></div>` : ""}
         ${o.distMrt ? `<div class="meta">${t("toMrt")}: <b style="color:#e2e8f0">${o.distMrt[lang]}</b></div>` : ""}
         <div class="price">${o.price[lang]}</div>
+        ${fitHtml}
         ${contactHtml}
       </button>
     `;
@@ -1581,9 +1681,27 @@ function openDrawer(id, setActive = true) {
         }).join("")
       }</div>`
     : "";
+  const markMap = {
+    pass: { cls: "st-pass", en: "OK", zh: "OK" },
+    fail: { cls: "st-fail", en: "NO", zh: "否" },
+    partial: { cls: "st-partial", en: "~", zh: "~" },
+    unknown: { cls: "st-unknown", en: "?", zh: "?" }
+  };
+  const reqById = Object.fromEntries(SITE_REQUIREMENTS.map((r) => [r.id, r]));
+  const conditionsHtml = (o.conditions && o.conditions.length)
+    ? `<div class="cond-box"><h4>${lang === "zh" ? "条件对照" : "Condition check"}</h4>
+        ${o.fit ? `<div class="fit-sum"><span class="fit-line fit-${o.fit.rank}">${o.fit.label[lang]}</span><div style="margin-top:8px;color:var(--muted)">${o.fit.summary[lang]}</div></div>` : ""}
+        ${o.conditions.map((row) => {
+          const m = markMap[row.status] || markMap.unknown;
+          const title = (reqById[row.id] && reqById[row.id][lang]) || row.id;
+          return `<div class="cond-row"><div class="cond-mark ${m.cls}">${m[lang]}</div><div><div class="cond-title">${title}</div><div class="cond-note">${row.note[lang]}</div></div></div>`;
+        }).join("")}
+      </div>`
+    : "";
   document.getElementById("drawerBody").innerHTML = `
     <div class="gallery" id="drawerGallery">${video}${photos}</div>
     ${pdfLinks}
+    ${conditionsHtml}
     ${contactsHtml}
     <div class="kv">
       <div class="box"><div class="l">${t("fromClient")}</div><div class="v">${o.distClient[lang]}</div></div>
