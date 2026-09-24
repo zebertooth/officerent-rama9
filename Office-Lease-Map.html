@@ -661,86 +661,106 @@ const OFFICES = {
     color: "#14b8a6",
     maps: "https://maps.app.goo.gl/NJFUtHkbuUd1R9ir9",
     distClient: { en: "~0.3 km · ~3–5 min", zh: "约0.3公里 · 约3–5分钟" },
-    distMrt: { en: "MRT Phra Ram 9 · ~0.8 km + free shuttle", zh: "MRT拉玛九站 · 约0.8公里 + 免费班车" },
+    distMrt: { en: "MRT Phra Ram 9 / TCC · free shuttle", zh: "MRT拉玛九 / 文化中心 · 免费班车" },
     name: { en: "V.ONE Tower", zh: "V.ONE大厦" },
     status: { en: "Ready to propose", zh: "可提案" },
     price: { en: "THB 1,100–1,200 /sqm/mo (negotiable)", zh: "1,100–1,200泰铢/平方米/月（可谈）" },
     summary: {
-      en: "Floors 34–36 · premium furnished · lowest OT A/C · free MRT shuttle",
-      zh: "34–36楼 · 高端精装 · 加班空调最便宜 · 免费MRT班车"
+      en: "Fl.34–36 · ~3,000 sqm split · premium furnished · OT A/C 300/hr · can combine ≈150 sqm",
+      zh: "34–36楼 · 约3,000㎡可分割 · 高端精装 · 加班空调300/时 · 可组合约150㎡"
     },
     media: {
-      photos: [
-        "presentation-assets/vone-exterior.jpg",
-        "presentation-assets/vone-interior1.jpg",
-        "presentation-assets/vone-open.jpg",
-        "presentation-assets/vone-meeting.jpg",
-        "presentation-assets/vone-lounge.jpg",
-        "presentation-assets/vone-plan2.jpg",
-        "presentation-assets/vone-shuttle.jpg"
-      ],
-      video: "presentation-assets/vone-clip.mp4",
-      pdf: "presentation-assets/vone-floorplan.pdf"
+      photos: ["presentation-assets/vone-01.jpg","presentation-assets/vone-02.jpg","presentation-assets/vone-03.jpg","presentation-assets/vone-04.jpg","presentation-assets/vone-05.jpg","presentation-assets/vone-06.jpg","presentation-assets/vone-07.jpg","presentation-assets/vone-08.jpg","presentation-assets/vone-09.jpg","presentation-assets/vone-10.jpg","presentation-assets/vone-11.jpg","presentation-assets/vone-12.jpg","presentation-assets/vone-13.jpg","presentation-assets/vone-14.jpg","presentation-assets/vone-15.jpg","presentation-assets/vone-16.jpg","presentation-assets/vone-17.jpg","presentation-assets/vone-18.jpg","presentation-assets/vone-19.jpg","presentation-assets/vone-20.jpg","presentation-assets/vone-21.jpg","presentation-assets/vone-22.jpg","presentation-assets/vone-23.jpg","presentation-assets/vone-24.jpg","presentation-assets/vone-25.jpg","presentation-assets/vone-26.jpg","presentation-assets/vone-27.jpg","presentation-assets/vone-28.jpg","presentation-assets/vone-29.jpg","presentation-assets/vone-30.jpg","presentation-assets/vone-31.jpg","presentation-assets/vone-32.jpg","presentation-assets/vone-33.jpg","presentation-assets/vone-34.jpg","presentation-assets/vone-35.jpg","presentation-assets/vone-36.jpg","presentation-assets/vone-37.jpg","presentation-assets/vone-38.jpg","presentation-assets/vone-39.jpg","presentation-assets/vone-40.jpg","presentation-assets/vone-41.jpg","presentation-assets/vone-42.jpg","presentation-assets/vone-43.jpg","presentation-assets/vone-44.jpg","presentation-assets/vone-45.jpg"],
+      videos: ["presentation-assets/vone-clip-1.mp4","presentation-assets/vone-clip-2.mp4","presentation-assets/vone-clip-3.mp4"],
+      video: "presentation-assets/vone-clip-1.mp4",
+      pdf: "presentation-assets/vone-floorplan.pdf",
+      pdfs: [
+        { href: "presentation-assets/vone-floorplan.pdf", en: "Open available-space PDF (พื้นที่ว่าง)", zh: "打开空置平面 PDF（พื้นที่ว่าง）" }
+      ]
     },
     facts: {
       en: [
-        ["Floors", "34 / 35 / 36"],
+        ["Address", "V.ONE Tower — Google Maps pin"],
+        ["Office floors", "34 / 35 / 36 · ~3,000 sqm total, split-lease"],
         ["Ceiling", "3.0 – 4.0 m"],
-        ["Package", "A/C (office hours) + water + internet + common area"],
-        ["Lease", "Min. 1 year"],
+        ["Finish", "Premium furniture · move-in ready"],
+        ["Package includes", "A/C (office hours) · water · high-speed internet · common-area fee"],
+        ["A/C hours", "Mon–Fri 08:00–18:00 free · OT A/C THB 300 / hour"],
         ["Electricity", "THB 7 / unit"],
-        ["OT A/C", "THB 300 / hour"]
+        ["Lease", "Min. 1 year · DBD company-name reservation required"]
       ],
       zh: [
-        ["楼层", "34 / 35 / 36"],
+        ["地址", "V.ONE Tower — Google 地图定位"],
+        ["办公楼层", "34 / 35 / 36 · 合计约3,000㎡可分割出租"],
         ["层高", "3.0 – 4.0 米"],
-        ["套餐含", "办公时段空调 + 水 + 网络 + 公区"],
-        ["租期", "最少1年"],
+        ["交房", "高端家具精装 · 可即搬入"],
+        ["套餐含", "办公时段空调 · 水 · 高速网络 · 公区维护"],
+        ["空调", "周一至五 08:00–18:00 免费 · 加班空调 300泰铢/小时"],
         ["电费", "7泰铢/度"],
-        ["加班空调", "300泰铢/小时"]
+        ["租期", "最少1年 · 需DBD公司名称预留文件"]
       ]
     },
     rent: {
       en: [
-        "Plan 1: THB 1,200 /sqm (deposit 3 + advance 1)",
-        "Plan 2: THB 1,150 /sqm (deposit 3 + advance 3)",
-        "Plan 3: THB 1,100 /sqm (deposit 3 + advance 6)",
-        "Negotiable"
+        "Plan 1: THB 1,200 /sqm/mo — deposit 3 mo + advance 1 mo",
+        "Plan 2: THB 1,150 /sqm/mo — deposit 3 mo + advance 3 mo",
+        "Plan 3: THB 1,100 /sqm/mo — deposit 3 mo + advance 6 mo",
+        "Negotiable (per agent Khun Ruji)",
+        "Company registration docs: first request THB 3,500 · from 2nd time THB 8,000",
+        "Access cards: 1 free / 10 sqm · extra card deposit THB 500 each",
+        "Cleaning: from THB 5/sqm/visit · packages 4×/mo = 20/sqm · 8× = 30/sqm · 12× = 40/sqm"
       ],
       zh: [
-        "方案1：1,200泰铢/平方米（押3 + 预付1）",
-        "方案2：1,150泰铢/平方米（押3 + 预付3）",
-        "方案3：1,100泰铢/平方米（押3 + 预付6）",
-        "价格可协商"
+        "方案1：1,200泰铢/㎡/月 — 押金3个月 + 预付1个月",
+        "方案2：1,150泰铢/㎡/月 — 押金3个月 + 预付3个月",
+        "方案3：1,100泰铢/㎡/月 — 押金3个月 + 预付6个月",
+        "可谈（经中介 Khun Ruji）",
+        "公司注册文件：首次3,500泰铢 · 第二次起每次8,000泰铢",
+        "门禁卡：每10㎡免1张 · 补卡押金500泰铢/张",
+        "保洁：按次5泰铢/㎡起 · 套餐4次/月=20/㎡ · 8次=30/㎡ · 12次=40/㎡"
       ]
     },
     layout: {
       en: [
-        "Premium ready-furnished suites: wood-desk benching with fabric privacy screens and lockable pedestal drawers.",
-        "Mix of open work zones, glass-enclosed meeting rooms, lounge sofa areas, and pantry / bar seating.",
-        "Ceiling height 3–4 m; high-floor panoramic views on upper levels.",
-        "Meeting room quota: Fl.34 free 2 hrs/mo; Fl.35–36 free 4 hrs/mo (then THB 700/hr).",
-        "Free shuttle Mon–Fri 07:00–09:00 & 16:00–19:00 to MRT Phra Ram 9 and MRT Thailand Cultural Centre.",
-        "Parking: 1 free car / 100 sqm; extra car THB 2,400/mo."
+        "Amenities: café + 7-Eleven at podium · staff canteen · trilingual reception (TH/EN/ZH) · lounge · pantry (fridge, microwave, coffee, free water) · closed & open meeting rooms · public bar work counters.",
+        "Sample sizes from agent: 36 / 56 / 64 sqm · can combine 56+64+30 = 150 sqm · orange on plan = vacant.",
+        "Unit front example: room 360105 (see gallery).",
+        "Meeting-room quota: Fl.34 free 2 hrs/mo · Fl.35–36 free 4 hrs/mo · then THB 700/hr or 1,200/2hrs · 4-meeting pack THB 2,300.",
+        "Parking: 1 free car / 100 sqm · extra car THB 2,400/mo · motorcycle THB 550/mo · visitor first hour free then THB 30/hr · EV chargers on site.",
+        "Free shuttle Mon–Fri 07:00–09:00 & 16:00–19:00 to MRT TCC + MRT Phra Ram 9 (no Sat/Sun/holiday).",
+        "Goods lift: agent confirmed usable on holidays for IT / large equipment moves.",
+        "Nearby: Central Rama 9 · G Tower · CW Tower · Fortune Town · Jodd Fairs · Big C Ratchada · The Street · Rama 9 / Piyavate hospitals."
       ],
       zh: [
-        "高端拎包入住：木纹联排工位、织物屏风、带密码锁抽屉柜。",
-        "开放办公区 + 玻璃会议室 + 沙发休息区 + 茶水间/吧台座位组合。",
-        "层高3–4米；高区楼层有城市全景。",
-        "会议室额度：34楼每月免费2小时；35–36楼每月免费4小时（超出700泰铢/小时）。",
-        "免费班车：周一至周五 07:00–09:00 与 16:00–19:00，往返MRT拉玛九站与MRT文化中心站。",
-        "停车：每100平方米免费1个车位；额外车位2,400泰铢/月。"
+        "配套：裙楼咖啡+7-11 · 员工食堂 · 三语前台（泰/英/中）· 休息区 · 茶水间 · 封闭/开放会议室 · 公共吧台工位。",
+        "中介样板面积：36 / 56 / 64㎡ · 可组合 56+64+30 = 150㎡ · 平面橙色=空置。",
+        "门口示例：房间 360105（见相册）。",
+        "会议室额度：34楼每月免2小时 · 35–36楼每月免4小时 · 超出700/时或1,200/2小时 · 四次套餐2,300。",
+        "停车：每100㎡免1车 · 额外汽车2,400/月 · 摩托550/月 · 访客首小时免其后30/时 · 有EV充电。",
+        "免费班车：周一至五 07:00–09:00 与 16:00–19:00 往返MRT文化中心 + MRT拉玛九（周末/假日停）。",
+        "货梯：中介确认节假日可用于IT/大件搬迁。",
+        "周边：Central Rama 9 · G Tower · CW · Fortune · Jodd Fairs · Big C · The Street · 医院等。"
       ]
     },
-    fit: {"rank":"out","label":{"en":"Out — building too new (2025)","zh":"排除 — 楼过新（2025）"},"summary":{"en":"Fails rule #1: completed 2025 (within 1 year). Closest to client + service lift, but age rule blocks it.","zh":"不满足条件1：2025年竣工（1年内）。虽距客户最近且有货梯，但楼龄规则直接排除。"}},
-    conditions: [{"id":"age","status":"fail","note":{"en":"Completed 2025 — within last 1 year.","zh":"2025年竣工 — 近1年新楼。"}},{"id":"office","status":"partial","note":{"en":"Units ~88–300 sqm marketed — 150 possible.","zh":"市场约88–300㎡ — 150可能有。"}},{"id":"storage","status":"unknown","note":{"en":"Dedicated 60–70 storage not confirmed.","zh":"独立60–70仓储未确认。"}},{"id":"meeting","status":"partial","note":{"en":"Furnished suites include meeting rooms — size TBC.","zh":"精装含会议室 — 面积待核实。"}},{"id":"freight","status":"partial","note":{"en":"1 service lift — holiday operation must confirm.","zh":"有1部货梯 — 节假日需确认。"}},{"id":"loading","status":"unknown","note":{"en":"Loading dock path not verified.","zh":"卸货路径未核实。"}},{"id":"entry","status":"partial","note":{"en":"Destination lifts + office lobby control typical.","zh":"目的地电梯+办公门厅管控常见。"}},{"id":"transit","status":"pass","note":{"en":"Closest to client (~0.3 km) + free MRT shuttle.","zh":"距客户最近（约0.3公里）+ 免费MRT班车。"}},{"id":"fitout","status":"partial","note":{"en":"Ready-furnished — rooms set; bring/replace desks OK.","zh":"精装已有房间 — 可自购/更换桌椅。"}}],
+    fit: {"rank":"out","label":{"en":"Out — building too new (2025)","zh":"排除 — 楼过新（2025）"},"summary":{"en":"Fails rule #1: completed 2025 (within 1 year). Closest to client; holiday goods lift OK; can combine ≈150 sqm — age rule still blocks.","zh":"不满足条件1：2025年竣工（1年内）。距客户最近；节假日货梯可用；可组合约150㎡ — 楼龄仍排除。"}},
+    conditions: [
+      {"id":"age","status":"fail","note":{"en":"Completed 2025 — within last 1 year.","zh":"2025年竣工 — 近1年新楼。"}},
+      {"id":"office","status":"partial","note":{"en":"Agent: can combine units e.g. 56+64+30 ≈ 150 sqm.","zh":"中介：可组合如56+64+30 ≈ 150㎡。"}},
+      {"id":"storage","status":"unknown","note":{"en":"Dedicated 60–70 storage not in LINE package — ask Ruji.","zh":"LINE资料未单列60–70仓储 — 请询Ruji。"}},
+      {"id":"meeting","status":"partial","note":{"en":"Meeting rooms on floor; a room can be private meeting.","zh":"楼层有会议室；某间可做私人会议。"}},
+      {"id":"freight","status":"pass","note":{"en":"Agent confirmed goods lift usable on holidays.","zh":"中介确认节假日可使用货梯。"}},
+      {"id":"loading","status":"partial","note":{"en":"Ask site visit for move path of large IT gear.","zh":"大件IT设备搬迁路径建议实地看。"}},
+      {"id":"entry","status":"partial","note":{"en":"Access cards by sqm — controlled office access.","zh":"按面积发卡 — 办公层门禁受控。"}},
+      {"id":"transit","status":"pass","note":{"en":"Closest to client + free MRT shuttle (2 stops).","zh":"距客户最近 + 免费MRT班车（2站）。"}},
+      {"id":"fitout","status":"pass","note":{"en":"Premium furnished — no DIY walls; bring/replace desks OK.","zh":"高端精装 — 无需自隔墙；可自购/更换桌椅。"}}
+    ],
     contacts: [
       {
         kind: "agent",
         name: { en: "Khun Ruji (รุจิ)", zh: "Khun Ruji（รุจิ）" },
-        role: { en: "Agent — SKYY9 & V.ONE", zh: "中介 — SKYY9 & V.ONE" },
+        role: { en: "Agent — SKYY9 & V.ONE (LINE primary)", zh: "中介 — SKYY9 & V.ONE（LINE主联系）" },
         phone: "086-924-2222",
-        source: { en: "Your contact", zh: "您提供的联系人" }
+        source: { en: "LINE chat · your contact", zh: "LINE对话 · 您的联系人" }
       },
       {
         kind: "direct",
@@ -752,12 +772,12 @@ const OFFICES = {
       }
     ],
     notes: {
-      en: "Required document: company name reservation letter from DBD before leasing process.",
-      zh: "必需文件：租赁前需提供DBD（公司注册局）公司名称预留文件。"
+      en: "Details ordered from LINE (Khun Ruji). Need DBD company-name reservation before lease — full company registration not required first. Age rule still fails (<1 year building).",
+      zh: "明细按 LINE（Khun Ruji）顺序整理。签约前需DBD公司名称预留 — 不必先完成完整注册。楼龄规则仍不通过（近1年新楼）。"
     },
     good: {
-      en: "Strong point: OT A/C only THB 300/hour — best for teams that work late often.",
-      zh: "优势：加班空调仅300泰铢/小时 — 适合经常加班的团队。"
+      en: "OT A/C only THB 300/hour · free MRT shuttle · holiday goods lift OK · closest to client.",
+      zh: "加班空调仅300泰铢/小时 · 免费MRT班车 · 节假日货梯可用 · 距客户最近。"
     }
   },
 
@@ -1648,7 +1668,10 @@ function openDrawer(id, setActive = true) {
     const wide = i === 0 || /cw-unit|floorplan|plan/i.test(src);
     return `<img src="${src}" alt="" class="${wide ? "wide" : ""}" loading="lazy" title="${lang === "zh" ? "点击放大" : "Click to enlarge"}" />`;
   }).join("");
-  const video = o.media.video ? `<video class="wide" controls preload="metadata" src="${o.media.video}"></video>` : "";
+  const videoList = (o.media.videos && o.media.videos.length)
+    ? o.media.videos
+    : (o.media.video ? [o.media.video] : []);
+  const video = videoList.map((src) => `<video class="wide" controls preload="metadata" src="${src}"></video>`).join("");
   let pdfLinks = "";
   if (o.media.pdfs && o.media.pdfs.length) {
     pdfLinks = o.media.pdfs.map((p) => `<a class="link" href="${p.href}" target="_blank" rel="noopener">${p[lang]}</a>`).join(" ");
