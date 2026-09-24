@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Office Lease Map · Rama 9 / Huai Khwang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+<link href="presentation-assets/leaflet.css" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f1720;
+    --panel: #16202c;
+    --card: #1c2836;
+    --line: #2b3b4f;
+    --text: #eef3f8;
+    --muted: #9aafc2;
+    --client: #ef4444;
+    --sky: #3b82f6;
+    --vone: #14b8a6;
+    --cw: #a78bfa;
+    --thai: #f59e0b;
+    --singha: #ec4899;
+    --gtower: #0ea5e9;
+    --unilever: #22c55e;
+    --aia: #f87171;
+    --mrt: #94a3b8;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Source Sans 3", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  body.lang-zh { font-family: "Noto Sans SC", "Source Sans 3", sans-serif; }
+
+  header {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: center; justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(15,23,32,.95);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand strong {
+    font-family: Outfit, sans-serif;
+    font-size: 1.15rem; letter-spacing: .02em;
+  }
+  .brand span { color: var(--muted); font-size: .9rem; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .lang {
+    display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  }
+  .lang button {
+    border: 0; background: transparent; color: var(--muted);
+    padding: 8px 12px; cursor: pointer; font: inherit; font-weight: 700;
+  }
+  .lang button.active { background: var(--accent); color: #062033; }
+  .btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    padding: 8px 12px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 600;
+  }
+  .btn.primary { background: var(--accent); color: #062033; border-color: transparent; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1.45fr 0.85fr;
+    min-height: 0;
+    height: calc(100vh - 64px);
+  }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; grid-template-rows: 55vh 1fr; height: auto; }
+  }
+
+  .map-pane {
+    position: relative;
+    border-right: 1px solid var(--line);
+    background: #0b1220;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .map-toolbar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: #121a24;
+    z-index: 5;
+  }
+  .map-toolbar .seg {
+    display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+  }
+  .map-toolbar .seg button {
+    border: 0; background: transparent; color: var(--muted);
+    padding: 7px 11px; cursor: pointer; font: inherit; font-weight: 700; font-size: .85rem;
+  }
+  .map-toolbar .seg button.on { background: #243044; color: #fff; }
+  #liveMap {
+    flex: 1;
+    min-height: 420px;
+    width: 100%;
+    z-index: 1;
+  }
+  .map-fallback {
+    display: none;
+    position: absolute; inset: 48px 0 0 0;
+    z-index: 2;
+    background: #0b1220;
+  }
+  .map-fallback.show { display: block; }
+  .map-fallback iframe { width: 100%; height: 100%; border: 0; }
+
+  .leaflet-container { background: #1a2330; font: inherit; }
+  .pin-icon {
+    background: transparent; border: 0;
+  }
+  .pin-bubble {
+    display: flex; flex-direction: column; align-items: center;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.4));
+  }
+  .pin-bubble span {
+    background: rgba(8,14,22,.92); color: #fff;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+    padding: 3px 7px; border-radius: 7px; margin-bottom: 3px;
+    border: 1px solid rgba(255,255,255,.18);
+  }
+  .pin-bubble i {
+    display: block; width: 16px; height: 16px; border-radius: 50%;
+    border: 2.5px solid #fff;
+  }
+  .dist-label {
+    background: rgba(8,14,22,.9) !important;
+    border: 1px solid rgba(255,255,255,.2) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    padding: 2px 8px !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+  }
+  .dist-label::before { display: none !important; }
+
+  .hint {
+    position: absolute; left: 14px; bottom: 14px; z-index: 500;
+    background: rgba(8,14,22,.92);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    max-width: min(340px, 90%);
+    font-size: .86rem;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .hint b { color: var(--text); display: block; margin-bottom: 2px; }
+
+  .legend {
+    position: absolute; right: 14px; top: 58px; z-index: 500;
+    background: rgba(8,14,22,.92);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: .82rem;
+  }
+  .legend div { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+  .sw { width: 10px; height: 10px; border-radius: 50%; }
+
+  .side {
+    overflow: auto;
+    padding: 16px;
+    background: linear-gradient(180deg, #121a24, #0f1720);
+  }
+  .side h2 {
+    font-family: Outfit, "Noto Sans SC", sans-serif;
+    font-size: 1.2rem; margin: 0 0 6px;
+  }
+  .side .lead { color: var(--muted); margin: 0 0 14px; font-size: .95rem; }
+
+  .cards { display: grid; gap: 10px; }
+  .card {
+    text-align: left;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 14px;
+    padding: 12px;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+    transition: border-color .15s, transform .15s;
+  }
+  .card:hover, .card.active { border-color: var(--accent); transform: translateY(-1px); }
+  .card .row { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+  .card h3 { margin: 0; font-size: 1rem; }
+  .badge {
+    font-size: .72rem; font-weight: 700; padding: 3px 7px; border-radius: 999px;
+  }
+  .badge.sky { background: #1e3a8a; color: #bfdbfe; }
+  .badge.vone { background: #115e59; color: #99f6e4; }
+  .badge.cw { background: #4c1d95; color: #ddd6fe; }
+  .badge.wait { background: #334155; color: #cbd5e1; }
+  .badge.thai { background: #78350f; color: #fde68a; }
+  .badge.singha { background: #9d174d; color: #fbcfe8; }
+  .badge.market { background: #1e3a5f; color: #93c5fd; }
+  .badge.gtower { background: #0c4a6e; color: #bae6fd; }
+  .badge.unilever { background: #14532d; color: #bbf7d0; }
+  .badge.aia { background: #7f1d1d; color: #fecaca; }
+  .card .contact-line { margin-top: 8px; font-size: .84rem; color: #cbd5e1; }
+  .card .contact-line a { color: #7dd3fc; text-decoration: none; font-weight: 700; }
+  .contact-box {
+    margin: 12px 0; padding: 12px; border-radius: 12px;
+    border: 1px solid var(--line); background: #162231;
+  }
+  .contact-box h4 { margin: 0 0 8px; font-size: .9rem; color: #93c5fd; letter-spacing: .04em; text-transform: uppercase; }
+  .contact-item { padding: 8px 0; border-top: 1px solid #243044; }
+  .contact-item:first-of-type { border-top: 0; padding-top: 0; }
+  .contact-item .who { font-weight: 700; }
+  .contact-item .role { color: var(--muted); font-size: .82rem; }
+  .contact-item a { color: #7dd3fc; font-weight: 700; text-decoration: none; }
+  .tag-direct { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 6px; border-radius:6px; background:#064e3b; color:#6ee7b7; margin-left:6px; }
+  .tag-agent { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 6px; border-radius:6px; background:#1e3a5f; color:#93c5fd; margin-left:6px; }
+  .card .meta { color: var(--muted); font-size: .86rem; margin-top: 6px; }
+  .card .price { margin-top: 8px; font-weight: 700; color: #7dd3fc; }
+
+  /* Detail drawer */
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40;
+  }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100%;
+    width: min(520px, 100%);
+    background: #111923;
+    border-left: 1px solid var(--line);
+    transform: translateX(105%);
+    transition: transform .25s ease;
+    z-index: 50;
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head {
+    display: flex; justify-content: space-between; gap: 10px; align-items: start;
+    padding: 16px; border-bottom: 1px solid var(--line);
+  }
+  .drawer-head h2 { margin: 0; font-family: Outfit, "Noto Sans SC", sans-serif; font-size: 1.25rem; }
+  .drawer-body { overflow: auto; padding: 16px; flex: 1; }
+  .close {
+    border: 0; background: var(--card); color: var(--text);
+    width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 1.2rem;
+  }
+
+  .gallery {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
+  }
+  .gallery img, .gallery video {
+    width: 100%; height: 140px; object-fit: cover; border-radius: 10px; background: #000;
+  }
+  .gallery img.wide, .gallery video.wide { grid-column: 1 / -1; height: 200px; }
+  .gallery img {
+    cursor: zoom-in;
+    transition: outline .15s, transform .15s;
+  }
+  .gallery img:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* Image lightbox overview */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 80;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.88);
+    padding: 24px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: min(96vw, 1400px);
+    max-height: 88vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .lightbox .lb-close, .lightbox .lb-nav {
+    position: absolute; border: 0; cursor: pointer;
+    background: rgba(255,255,255,.12); color: #fff;
+    border-radius: 12px; font: inherit; font-weight: 700;
+  }
+  .lightbox .lb-close {
+    top: 16px; right: 16px; width: 44px; height: 44px; font-size: 1.4rem;
+  }
+  .lightbox .lb-nav {
+    top: 50%; transform: translateY(-50%);
+    width: 48px; height: 48px; font-size: 1.6rem;
+  }
+  .lightbox .lb-prev { left: 16px; }
+  .lightbox .lb-next { right: 16px; }
+  .lightbox .lb-counter {
+    position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+    color: #cbd5e1; font-size: .9rem; background: rgba(0,0,0,.5);
+    padding: 6px 12px; border-radius: 999px;
+  }
+  .lightbox .lb-hint {
+    position: absolute; top: 20px; left: 20px; color: #94a3b8; font-size: .85rem;
+  }
+
+  .kv {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0;
+  }
+  .kv .box {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px;
+  }
+  .kv .box .l { color: var(--muted); font-size: .78rem; }
+  .kv .box .v { font-weight: 700; margin-top: 2px; }
+
+  .block { margin: 14px 0; }
+  .block h4 {
+    margin: 0 0 6px; font-size: .95rem;
+    color: #cbd5e1; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .block ul { margin: 0; padding-left: 18px; color: var(--text); }
+  .block li { margin: 4px 0; }
+  .warn {
+    background: #3b2110; border: 1px solid #9a3412; color: #fdba74;
+    border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: .92rem;
+  }
+  .ok {
+    background: #0f2f2a; border: 1px solid #0f766e; color: #99f6e4;
+    border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: .92rem;
+  }
+  .link {
+    display: inline-block; margin-top: 8px; margin-right: 12px; color: var(--accent); font-weight: 600;
+  }
+  .unit-table {
+    width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 6px;
+  }
+  .unit-table th, .unit-table td {
+    border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top;
+  }
+  .unit-table th { color: var(--muted); font-weight: 600; }
+  .unit-table tr:hover td { background: rgba(56,189,248,.06); }
+
+  @media print {
+    header .controls .btn, .hint { display: none !important; }
+    .drawer, .drawer-backdrop, .lightbox { display: none !important; }
+    .layout { display: block; }
+    .map-pane { min-height: 70vh; border: 0; }
+    .side { break-before: page; }
+    body { background: #fff; color: #111; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <strong data-i18n="title">Office Lease Comparison</strong>
+      <span data-i18n="subtitle">Rama 9 · Ratchada · Client site distance map</span>
+    </div>
+    <div class="controls">
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" id="btn-en" class="active" onclick="setLang('en')">EN</button>
+        <button type="button" id="btn-zh" onclick="setLang('zh')">中文</button>
+      </div>
+      <button class="btn" type="button" onclick="window.print()" data-i18n="print">Print / PDF</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="map-pane">
+      <div class="map-toolbar">
+        <div class="seg" role="group">
+          <button type="button" class="on" id="btnStreet" onclick="setMapMode('street')">Street</button>
+          <button type="button" id="btnSat" onclick="setMapMode('sat')">Satellite</button>
+          <button type="button" id="btnGmap" onclick="setMapMode('google')">Google Maps</button>
+        </div>
+        <a class="btn" id="openGmaps" href="#" target="_blank" rel="noopener" style="text-decoration:none">Open in Google Maps ↗</a>
+      </div>
+      <div id="liveMap"></div>
+      <div class="map-fallback" id="mapFallback">
+        <iframe id="gmapFrame" title="Google Maps" loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen></iframe>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="hint">
+        <b data-i18n="hintTitle">Click a colored pin</b>
+        <span data-i18n="hintBody">Live map with exact GPS pins. Lines show distance from client site and to MRT.</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <h2 data-i18n="listTitle">Options near client site</h2>
+      <p class="lead" data-i18n="listLead">Client site: 555 Soi Thale Bangkok (ซ.ทะเลบางกอก), Bang Kapi, Huai Khwang, Bangkok 10310</p>
+      <div class="cards" id="cards"></div>
+    </aside>
+  </div>
+
+  <div class="drawer-backdrop" id="backdrop" onclick="closeDrawer()"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div id="drawerBadge"></div>
+        <h2 id="drawerTitle"></h2>
+        <div id="drawerSub" style="color:var(--muted);font-size:.92rem;margin-top:4px;"></div>
+      </div>
+      <button class="close" type="button" onclick="closeDrawer()" aria-label="Close">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image overview">
+    <div class="lb-hint" data-i18n-lb="Esc / ← →">Click image area or Esc to close · ← → to browse</div>
+    <button type="button" class="lb-close" onclick="closeLightbox()" aria-label="Close">×</button>
+    <button type="button" class="lb-nav lb-prev" onclick="lightboxStep(-1)" aria-label="Previous">‹</button>
+    <img id="lightboxImg" src="" alt="Overview" />
+    <button type="button" class="lb-nav lb-next" onclick="lightboxStep(1)" aria-label="Next">›</button>
+    <div class="lb-counter" id="lightboxCounter"></div>
+  </div>
+
+<script src="presentation-assets/leaflet.js"></script>
+<script>
+/* Pins verified against Google Maps / OpenStreetMap (Sep 2026) */
+const COORDS = {
+  // Google Maps: 555 ซ.ทะเลบางกอก — !3d13.7527405!4d100.5731537
+  client: { lat: 13.7527405, lon: 100.5731537 },
+  // Near 554 Asok–Din Daeng (SKYY9 / ~240 m from MRT Phra Ram 9)
+  sky9: { lat: 13.7560659, lon: 100.5639159 },
+  // Google Maps V.ONE TOWER — !3d13.7557204!4d100.5722836
+  vone: { lat: 13.7557204, lon: 100.5722836 },
+  // OpenStreetMap: Cyber World Tower (CW Tower)
+  cw: { lat: 13.7694001, lon: 100.5735854 },
+  // OpenStreetMap: Thai Summit Tower, 1768 New Phetchaburi
+  thaiSummit: { lat: 13.7478603, lon: 100.5677010 },
+  // OpenStreetMap: Singha Complex, 1788 New Petchaburi
+  singha: { lat: 13.7482719, lon: 100.5644870 },
+  // MRT Phra Ram 9
+  mrt9: { lat: 13.7578166, lon: 100.5652774 },
+  // MRT Thailand Cultural Centre (station node)
+  mrtcc: { lat: 13.7661576, lon: 100.5701188 },
+  // MRT Phetchaburi
+  mrtphet: { lat: 13.7491853, lon: 100.5634165 },
+  // Nearby towers
+  gtower: { lat: 13.75880, lon: 100.56650 },
+  unilever: { lat: 13.75720, lon: 100.56680 },
+  aia: { lat: 13.7646196, lon: 100.5679642 }
+};
+
+const I18N = {
+  en: {
+    title: "Office Lease Comparison",
+    subtitle: "Rama 9 · Ratchada · Client site distance map",
+    print: "Print / PDF",
+    hintTitle: "Click a colored pin",
+    hintBody: "Live map with exact GPS pins. Lines show distance from client site and to MRT.",
+    listTitle: "Options near client site",
+    listLead: "Client site: 555 Soi Thale Bangkok (ซ.ทะเลบางกอก), Bang Kapi, Huai Khwang, Bangkok 10310",
+    legendClient: "Client site",
+    legendOffice: "Office options",
+    legendMrt: "MRT stations",
+    fromClient: "From client site",
+    toMrt: "To nearest MRT",
+    clickCard: "Click for details",
+    pending: "Pending details",
+    ready: "Ready to propose",
+    waitingContact: "Waiting for contact"
+  },
+  zh: {
+    title: "办公室租赁对比",
+    subtitle: "拉玛九 · 拉差达 · 客户现场距离地图",
+    print: "打印 / 导出PDF",
+    hintTitle: "点击彩色标记点",
+    hintBody: "实时地图使用精确GPS坐标。连线显示到客户现场及MRT的距离。",
+    listTitle: "靠近客户现场的选项",
+    listLead: "客户现场：555 Soi Thale Bangkok（ซ.ทะเลบางกอก）, Bang Kapi, Huai Khwang, Bangkok 10310",
+    legendClient: "客户现场",
+    legendOffice: "候选办公室",
+    legendMrt: "MRT车站",
+    fromClient: "距客户现场",
+    toMrt: "距最近MRT",
+    clickCard: "点击查看详情",
+    pending: "详情待补充",
+    ready: "可提案",
+    waitingContact: "等待联系"
+  }
+};
+
+const OFFICES = {
+  sky9: {
+    id: "sky9",
+    cls: "sky",
+    color: "#3b82f6",
+    maps: "https://maps.app.goo.gl/eHQG2yQ1r2FC5QV3A",
+    distClient: { en: "~1.1 km · ~5 min", zh: "约1.1公里 · 约5分钟" },
+    distMrt: { en: "MRT Phra Ram 9 · ~240 m walk", zh: "MRT拉玛九站 · 步行约240米" },
+    name: { en: "SKYY9 Centre", zh: "SKYY9中心（拉玛九）" },
+    status: { en: "Ready to propose", zh: "可提案" },
+    price: { en: "THB 1,100–1,200 /sqm/mo", zh: "1,100–1,200泰铢/平方米/月" },
+    summary: {
+      en: "Floor 27 · furnished · ready to move in · closest walk to MRT Phra Ram 9",
+      zh: "27楼 · 精装交付 · 可即搬入 · 步行至MRT拉玛九最近"
+    },
+    media: {
+      photos: [
+        "presentation-assets/sky9-exterior.jpg",
+        "presentation-assets/sky9-room1.jpg",
+        "presentation-assets/sky9-room2.jpg",
+        "presentation-assets/sky9-interior2.jpg",
+        "presentation-assets/sky9-meeting.jpg",
+        "presentation-assets/sky9-info3.jpg"
+      ],
+      video: "presentation-assets/sky9-clip.mp4"
+    },
+    facts: {
+      en: [
+        ["Floor", "27"],
+        ["Sizes", "26.5 / 40 / 51.5 / 53.8 / 77 / 82.5 / 112.5 sqm"],
+        ["Condition", "Fully decorated · move-in ready"],
+        ["Lease", "Min. 1 year"],
+        ["Electricity", "THB 7.5 / unit"],
+        ["OT A/C", "THB 1,500 / hour"]
+      ],
+      zh: [
+        ["楼层", "27楼"],
+        ["面积", "26.5 / 40 / 51.5 / 53.8 / 77 / 82.5 / 112.5 平方米"],
+        ["状态", "精装修 · 可即搬入"],
+        ["租期", "最少1年"],
+        ["电费", "7.5泰铢/度"],
+        ["加班空调", "1,500泰铢/小时"]
+      ]
+    },
+    rent: {
+      en: [
+        "Deposit 3 mo + 1 mo advance → THB 1,200 /sqm/mo",
+        "Deposit 3 mo + 3 mo advance → THB 1,150 /sqm/mo",
+        "Deposit 3 mo + 6 mo advance → THB 1,100 /sqm/mo"
+      ],
+      zh: [
+        "押金3个月 + 预付1个月 → 1,200泰铢/平方米/月",
+        "押金3个月 + 预付3个月 → 1,150泰铢/平方米/月",
+        "押金3个月 + 预付6个月 → 1,100泰铢/平方米/月"
+      ]
+    },
+    layout: {
+      en: [
+        "Typical unit has a long shared workbench with frosted desk dividers and ergonomic mesh chairs.",
+        "Integrated desktop power outlets at each seat — plug-and-play for laptops.",
+        "Low storage cabinets along the wall; glass partition / meeting zone toward the window side.",
+        "High-floor city view through full-height glass; reception lobby with Workii branding in common area.",
+        "Building hours Mon–Fri 08:00–18:00. If overtime is frequent, landlord recommends installing split A/C (central OT A/C is expensive)."
+      ],
+      zh: [
+        "典型户型为长条共享工位桌，配磨砂隔断与人体工学网椅。",
+        "桌面内嵌电源插座，笔记本即插即用。",
+        "靠墙低柜收纳；靠窗一侧多为玻璃隔断/会议区。",
+        "高层落地窗城市景观；公共区有前台接待（Workii风格）。",
+        "大楼运营时间为周一至周五 08:00–18:00。若经常加班，建议安装分体空调（中央空调加班费较高）。"
+      ]
+    },
+    contacts: [
+      {
+        kind: "agent",
+        name: { en: "Khun Ruji (รุจิ)", zh: "Khun Ruji（รุจิ）" },
+        role: { en: "Agent — SKYY9 & V.ONE", zh: "中介 — SKYY9 & V.ONE" },
+        phone: "086-924-2222",
+        source: { en: "Your contact", zh: "您提供的联系人" }
+      },
+      {
+        kind: "direct",
+        name: { en: "SKYY9 leasing (via Knight Frank)", zh: "SKYY9招商（Knight Frank）" },
+        role: { en: "Building leasing line", zh: "大楼招商热线" },
+        phone: "02-643-8038",
+        email: "bangkok@th.knightfrank.com",
+        source: { en: "Public listing (Knight Frank)", zh: "公开挂牌（Knight Frank）" }
+      }
+    ],
+    notes: {
+      en: "Watch-out: OT A/C at THB 1,500/hour is the highest among options.",
+      zh: "注意：加班空调1,500泰铢/小时，为本组选项中最高。"
+    }
+  },
+
+  vone: {
+    id: "vone",
+    cls: "vone",
+    color: "#14b8a6",
+    maps: "https://maps.app.goo.gl/NJFUtHkbuUd1R9ir9",
+    distClient: { en: "~0.3 km · ~3–5 min", zh: "约0.3公里 · 约3–5分钟" },
+    distMrt: { en: "MRT Phra Ram 9 · ~0.8 km + free shuttle", zh: "MRT拉玛九站 · 约0.8公里 + 免费班车" },
+    name: { en: "V.ONE Tower", zh: "V.ONE大厦" },
+    status: { en: "Ready to propose", zh: "可提案" },
+    price: { en: "THB 1,100–1,200 /sqm/mo (negotiable)", zh: "1,100–1,200泰铢/平方米/月（可谈）" },
+    summary: {
+      en: "Floors 34–36 · premium furnished · lowest OT A/C · free MRT shuttle",
+      zh: "34–36楼 · 高端精装 · 加班空调最便宜 · 免费MRT班车"
+    },
+    media: {
+      photos: [
+        "presentation-assets/vone-exterior.jpg",
+        "presentation-assets/vone-interior1.jpg",
+        "presentation-assets/vone-open.jpg",
+        "presentation-assets/vone-meeting.jpg",
+        "presentation-assets/vone-lounge.jpg",
+        "presentation-assets/vone-plan2.jpg",
+        "presentation-assets/vone-shuttle.jpg"
+      ],
+      video: "presentation-assets/vone-clip.mp4",
+      pdf: "presentation-assets/vone-floorplan.pdf"
+    },
+    facts: {
+      en: [
+        ["Floors", "34 / 35 / 36"],
+        ["Ceiling", "3.0 – 4.0 m"],
+        ["Package", "A/C (office hours) + water + internet + common area"],
+        ["Lease", "Min. 1 year"],
+        ["Electricity", "THB 7 / unit"],
+        ["OT A/C", "THB 300 / hour"]
+      ],
+      zh: [
+        ["楼层", "34 / 35 / 36"],
+        ["层高", "3.0 – 4.0 米"],
+        ["套餐含", "办公时段空调 + 水 + 网络 + 公区"],
+        ["租期", "最少1年"],
+        ["电费", "7泰铢/度"],
+        ["加班空调", "300泰铢/小时"]
+      ]
+    },
+    rent: {
+      en: [
+        "Plan 1: THB 1,200 /sqm (deposit 3 + advance 1)",
+        "Plan 2: THB 1,150 /sqm (deposit 3 + advance 3)",
+        "Plan 3: THB 1,100 /sqm (deposit 3 + advance 6)",
+        "Negotiable"
+      ],
+      zh: [
+        "方案1：1,200泰铢/平方米（押3 + 预付1）",
+        "方案2：1,150泰铢/平方米（押3 + 预付3）",
+        "方案3：1,100泰铢/平方米（押3 + 预付6）",
+        "价格可协商"
+      ]
+    },
+    layout: {
+      en: [
+        "Premium ready-furnished suites: wood-desk benching with fabric privacy screens and lockable pedestal drawers.",
+        "Mix of open work zones, glass-enclosed meeting rooms, lounge sofa areas, and pantry / bar seating.",
+        "Ceiling height 3–4 m; high-floor panoramic views on upper levels.",
+        "Meeting room quota: Fl.34 free 2 hrs/mo; Fl.35–36 free 4 hrs/mo (then THB 700/hr).",
+        "Free shuttle Mon–Fri 07:00–09:00 & 16:00–19:00 to MRT Phra Ram 9 and MRT Thailand Cultural Centre.",
+        "Parking: 1 free car / 100 sqm; extra car THB 2,400/mo."
+      ],
+      zh: [
+        "高端拎包入住：木纹联排工位、织物屏风、带密码锁抽屉柜。",
+        "开放办公区 + 玻璃会议室 + 沙发休息区 + 茶水间/吧台座位组合。",
+        "层高3–4米；高区楼层有城市全景。",
+        "会议室额度：34楼每月免费2小时；35–36楼每月免费4小时（超出700泰铢/小时）。",
+        "免费班车：周一至周五 07:00–09:00 与 16:00–19:00，往返MRT拉玛九站与MRT文化中心站。",
+        "停车：每100平方米免费1个车位；额外车位2,400泰铢/月。"
+      ]
+    },
+    contacts: [
+      {
+        kind: "direct",
+        name: { en: "V.ONE Tower leasing (direct)", zh: "V.ONE Tower 招商（直连）" },
+        role: { en: "Sales / leasing — building official", zh: "销售/招商 — 大楼官网" },
+        phone: "065-254-6645",
+        email: "sales@v-onetower.com",
+        source: { en: "v-onetower.com (official)", zh: "v-onetower.com（官网）" }
+      },
+      {
+        kind: "agent",
+        name: { en: "Khun Ruji (รุจิ)", zh: "Khun Ruji（รุจิ）" },
+        role: { en: "Agent — SKYY9 & V.ONE", zh: "中介 — SKYY9 & V.ONE" },
+        phone: "086-924-2222",
+        source: { en: "Your contact", zh: "您提供的联系人" }
+      }
+    ],
+    notes: {
+      en: "Required document: company name reservation letter from DBD before leasing process.",
+      zh: "必需文件：租赁前需提供DBD（公司注册局）公司名称预留文件。"
+    },
+    good: {
+      en: "Strong point: OT A/C only THB 300/hour — best for teams that work late often.",
+      zh: "优势：加班空调仅300泰铢/小时 — 适合经常加班的团队。"
+    }
+  },
+
+  cw: {
+    id: "cw",
+    cls: "cw",
+    color: "#a78bfa",
+    maps: "https://www.google.com/maps/search/?api=1&query=CW+Tower+Ratchadapisek+Bangkok",
+    distClient: { en: "~1.9 km · ~5–8 min", zh: "约1.9公里 · 约5–8分钟" },
+    distMrt: { en: "MRT Thailand Cultural Centre · ~0.5 km", zh: "MRT泰国文化中心站 · 约0.5公里" },
+    name: { en: "CW Tower", zh: "CW大厦" },
+    status: { en: "Ready to propose", zh: "可提案" },
+    price: { en: "THB 750–950 /sqm/mo · 159–209 sqm", zh: "750–950泰铢/平方米/月 · 159–209平方米" },
+    summary: {
+      en: "6 units on offer · Tower A/B · lease 3 yrs · OT 900/1,200 · register company before move-in",
+      zh: "现有6个单元 · A/B座 · 租期3年 · 加班空调900/1,200 · 入住前须注册公司"
+    },
+    media: {
+      photos: [
+        "presentation-assets/cw-profile-cover-01.png",
+        "presentation-assets/cw-profile-towerA-07.png",
+        "presentation-assets/cw-profile-towerB-10.png",
+        "presentation-assets/cw-unit-1.png",
+        "presentation-assets/cw-unit-2.png",
+        "presentation-assets/cw-unit-3.png",
+        "presentation-assets/cw-unit-4.png",
+        "presentation-assets/cw-unit-5.png",
+        "presentation-assets/cw-unit-6.png"
+      ],
+      video: null,
+      pdfs: [
+        { href: "presentation-assets/cw-floorplan.pdf", en: "Open unit sheets + floor plans (PDF)", zh: "打开单元明细与平面图（PDF）" },
+        { href: "presentation-assets/cw-profile.pdf", en: "Open building profile (PDF)", zh: "打开大楼介绍册（PDF）" }
+      ]
+    },
+    facts: {
+      en: [
+        ["Address", "Ratchadapisek Rd, Huai Khwang"],
+        ["Building", "Tower A 48F · Tower B 43F · Podium 6F"],
+        ["Ceiling", "2.6 m (office)"],
+        ["A/C hours", "Mon–Fri 07:30–17:30"],
+        ["OT A/C", "Weekday 900 · Weekend/Holiday 1,200 /hr"],
+        ["Electricity", "THB 6.75 / unit"],
+        ["Deposit", "3 months"],
+        ["Lease term", "3 years"]
+      ],
+      zh: [
+        ["地址", "拉差达披色路 · 汇权区"],
+        ["楼宇", "A座48层 · B座43层 · 裙楼6层"],
+        ["层高", "2.6米（办公）"],
+        ["空调时段", "周一至周五 07:30–17:30"],
+        ["加班空调", "工作日900 · 周末/假日1,200 /小时"],
+        ["电费", "6.75泰铢/度"],
+        ["押金", "3个月"],
+        ["租期", "3年"]
+      ]
+    },
+    units: {
+      headers: {
+        en: ["Unit", "Floor", "Size", "Rate", "Monthly", "Finish", "Parking"],
+        zh: ["单元", "楼层", "面积", "单价", "月租合计", "交房", "停车"]
+      },
+      rows: [
+        {
+          en: ["A3001/1 (Tower A)", "30", "164.54 sqm", "850", "139,859", "Vinyl floor + partitions", "Paid 2,000/car"],
+          zh: ["A3001/1（A座）", "30", "164.54㎡", "850", "139,859", "胶地板+隔断", "2,000/车位"]
+        },
+        {
+          en: ["A3004 (Tower A)", "30", "194.27 sqm", "950", "184,557", "Fully furnished", "Free 2 cars"],
+          zh: ["A3004（A座）", "30", "194.27㎡", "950", "184,557", "全装修带家具", "免2车位"]
+        },
+        {
+          en: ["B1902/1 (Tower B)", "19", "209 sqm", "950", "198,550", "Fully furnished", "Free 2 cars"],
+          zh: ["B1902/1（B座）", "19", "209㎡", "950", "198,550", "全装修带家具", "免2车位"]
+        },
+        {
+          en: ["B2201 (Tower B)", "22", "159.23 sqm", "950", "151,269", "Fully furnished", "Free 1 car"],
+          zh: ["B2201（B座）", "22", "159.23㎡", "950", "151,269", "全装修带家具", "免1车位"]
+        },
+        {
+          en: ["B2803 (Tower B)", "28", "206.56 sqm", "850", "175,576", "Partial partitions · no furniture", "Free 2 cars"],
+          zh: ["B2803（B座）", "28", "206.56㎡", "850", "175,576", "部分隔断·无家具", "免2车位"]
+        },
+        {
+          en: ["B2903 (Tower B)", "29", "209 sqm", "750", "156,750", "Standard (bare-ish)", "Free 2 cars"],
+          zh: ["B2903（B座）", "29", "209㎡", "750", "156,750", "标准交房", "免2车位"]
+        }
+      ]
+    },
+    rent: {
+      en: [
+        "Quoted range THB 750–950 /sqm/month (split into rent + service charge, typically 40/60 or 50/50).",
+        "Deposit: 3 months · Contract: 3 years (start/handover pending tenant confirmation).",
+        "Extra car park: THB 2,000/month (+VAT) · Motorcycle: THB 500/month.",
+        "Access cards included per unit (15–20); extra card THB 500.",
+        "Visitor parking: free 30 min (no stamp) / 1 hr (with stamp)."
+      ],
+      zh: [
+        "报价区间 750–950泰铢/平方米/月（租金+服务费拆分，常见40/60或50/50）。",
+        "押金：3个月 · 租期：3年（起租/交付日期待确认）。",
+        "额外车位：2,000泰铢/月（不含VAT）· 摩托车：500泰铢/月。",
+        "门禁卡按单元配置（约15–20张）；补卡500泰铢/张。",
+        "访客停车：未盖章免30分钟 / 盖章免1小时。"
+      ]
+    },
+    layout: {
+      en: [
+        "Typical unit sheets include floor-plan highlight + interior photos (see gallery / PDF).",
+        "Furnished units: ready desks/meeting rooms with glass partitions and city-view windows.",
+        "A3001/1: vinyl flooring + existing wall partitions (not fully furnished).",
+        "B2803: some partitions only, no furniture — more fit-out flexibility.",
+        "B2903: standard condition at the lowest rate (750).",
+        "Ceiling height ~2.6 m · central chilled A/C (no local thermostat in unit)."
+      ],
+      zh: [
+        "各单元资料含平面图标注与室内实景（见相册/PDF）。",
+        "精装单元：工位/会议室就绪，玻璃隔断，落地窗城市景观。",
+        "A3001/1：胶地板+现有隔墙（非全套家具）。",
+        "B2803：仅部分隔断、无家具 — 更适合自行装修。",
+        "B2903：标准交房，单价最低（750）。",
+        "层高约2.6米 · 中央冷冻水空调（单元内不可自行调温）。"
+      ]
+    },
+    good: {
+      en: "Lowest entry rate in this comparison: THB 750/sqm (B2903). Also closest to MRT Cultural Centre.",
+      zh: "本组最低单价：750泰铢/平方米（B2903）。且最靠近MRT文化中心站。"
+    },
+    contacts: [
+      {
+        kind: "direct",
+        name: { en: "CW Tower Customer Service", zh: "CW Tower 客户服务" },
+        role: { en: "Building management / leasing desk", zh: "物业管理 / 招商柜台" },
+        phone: "02-168-3332-3",
+        email: "cs@cwtower.com",
+        source: { en: "cwtower.com (official)", zh: "cwtower.com（官网）" }
+      },
+      {
+        kind: "agent",
+        name: { en: "Khun Tuy (ตุ้ย)", zh: "Khun Tuy（ตุ้ย）" },
+        role: { en: "Agent — CW Tower", zh: "中介 — CW Tower" },
+        phone: "085-245-0622",
+        source: { en: "Your contact", zh: "您提供的联系人" }
+      }
+    ],
+    notes: {
+      en: "Move-in condition: company must be registered before occupying. Unit availability subject to confirmation.",
+      zh: "入住条件：入住前须完成公司注册。单元空置情况以业主确认为准。"
+    }
+  },
+
+  thaiSummit: {
+    id: "thaiSummit",
+    cls: "thai",
+    color: "#f59e0b",
+    maps: "https://www.google.com/maps/search/?api=1&query=Thai+Summit+Tower+1768+New+Phetchaburi+Bangkok",
+    distClient: { en: "~0.8 km · ~5 min", zh: "约0.8公里 · 约5分钟" },
+    distMrt: { en: "MRT Phetchaburi · ~0.5 km (~6–8 min walk)", zh: "MRT佩奇布里站 · 约0.5公里（步行约6–8分钟）" },
+    name: { en: "Thai Summit Tower", zh: "Thai Summit大厦（泰峰）" },
+    status: { en: "Market data · contact pending", zh: "公开市场数据 · 待直接联系" },
+    price: { en: "THB ~625–650 /sqm/mo (asking)", zh: "约625–650泰铢/平方米/月（询价）" },
+    summary: {
+      en: "34F · New Phetchaburi · budget-friendly · near MRT Phetchaburi & ARL Makkasan",
+      zh: "34层 · 新佩奇布里路 · 性价比高 · 近MRT佩奇布里与机场快线Makkasan"
+    },
+    media: {
+      photos: [],
+      video: null
+    },
+    facts: {
+      en: [
+        ["Address", "1768 New Phetchaburi Rd, Huai Khwang"],
+        ["Floors", "34"],
+        ["Grade (market)", "B/C"],
+        ["Ceiling", "~2.6–2.7 m"],
+        ["A/C hours", "Mon–Fri 07:30–18:00"],
+        ["Electricity", "THB ~5.50 / unit"],
+        ["Water", "THB ~20 / unit"],
+        ["Lease (typical)", "3 years"],
+        ["Parking", "1 free / 100 sqm · extra ~2,000/mo"]
+      ],
+      zh: [
+        ["地址", "1768 新佩奇布里路 · 汇权区"],
+        ["楼层", "34层"],
+        ["市场等级", "B/C"],
+        ["层高", "约2.6–2.7米"],
+        ["空调时段", "周一至周五 07:30–18:00"],
+        ["电费", "约5.50泰铢/度"],
+        ["水费", "约20泰铢/单位"],
+        ["典型租期", "3年"],
+        ["停车", "每100㎡免1车位 · 额外约2,000/月"]
+      ]
+    },
+    rent: {
+      en: [
+        "Public asking rent ≈ THB 625–650 /sqm/month (sources: Bangkok Office Finder / OfficeBangkok, 2026).",
+        "Example listing: ~160 sqm around THB 96,000/mo; larger units also marketed (~1,000+ sqm).",
+        "Sizes commonly offered: ~100–200 / 300–500 / 700–1,000+ sqm.",
+        "Deposit / exact package: confirm with landlord (direct contact still pending)."
+      ],
+      zh: [
+        "公开询价约 625–650泰铢/平方米/月（来源：Bangkok Office Finder / OfficeBangkok，2026）。",
+        "示例：约160㎡约96,000泰铢/月；亦有大面积（约1,000㎡以上）在推。",
+        "常见面积段：约100–200 / 300–500 / 700–1,000+ ㎡。",
+        "押金与最终套餐：需与业主确认（直接联系仍待推进）。"
+      ]
+    },
+    layout: {
+      en: [
+        "Typical floor plate ≈ 1,200+ sqm; flexible small-to-large splits.",
+        "Sample units often shown as standard / bare-shell handover (fit-out required).",
+        "On-site retail, bank, café; food court reported on mid floors.",
+        "~500 m to MRT Phetchaburi · ~650–840 m to ARL Makkasan · near Si Rat Expressway.",
+        "Total lettable office area ≈ 33,000 sqm · ~700 parking spaces."
+      ],
+      zh: [
+        "标准层面积约1,200㎡以上；可拆分为中小到大面积。",
+        "样板多为标准/毛坯交付（需自行装修）。",
+        "楼下有零售、银行、咖啡；部分资料称有美食区。",
+        "距MRT佩奇布里约500米 · 机场快线Makkasan约650–840米 · 近高速公路。",
+        "可租办公约33,000㎡ · 车位约700个。"
+      ]
+    },
+    good: {
+      en: "Lowest asking rent among options (~650) — good if budget is the priority.",
+      zh: "本组询价最低（约650）— 适合预算优先。"
+    },
+    contacts: [
+      {
+        kind: "agent",
+        name: { en: "Aukit Pronpattanapairoj (C&W)", zh: "Aukit Pronpattanapairoj（C&W）" },
+        role: { en: "Cushman & Wakefield — listing desk", zh: "Cushman & Wakefield — 挂牌" },
+        phone: "080-571-6662",
+        source: { en: "C&W public listing (latest)", zh: "C&W公开挂牌（最近）" }
+      },
+      {
+        kind: "note",
+        name: { en: "Direct landlord line", zh: "业主直连" },
+        role: { en: "Not published online — still pending", zh: "网上未公开 — 仍待联系" },
+        phone: "",
+        source: { en: "No official leasing hotline found", zh: "未找到官方招商热线" }
+      }
+    ],
+    notes: {
+      en: "Data from public internet listings (not a confirmed landlord offer). Direct contact still pending — verify OT A/C, deposit, and exact unit before deciding.",
+      zh: "数据来自公开网络挂牌（非业主确认报价）。直接联系仍待推进 — 决策前请核实加班空调、押金与具体单元。"
+    }
+  },
+
+  singha: {
+    id: "singha",
+    cls: "singha",
+    color: "#ec4899",
+    maps: "https://www.google.com/maps/search/?api=1&query=Singha+Complex+1788+New+Petchaburi+Bangkok",
+    distClient: { en: "~1.1 km · ~5–8 min", zh: "约1.1公里 · 约5–8分钟" },
+    distMrt: { en: "MRT Phetchaburi Exit 2 · direct / ~2–3 min walk", zh: "MRT佩奇布里 Exit 2 · 直达 / 步行约2–3分钟" },
+    name: { en: "Singha Complex", zh: "Singha Complex（狮牌综合体）" },
+    status: { en: "Ready to propose", zh: "可提案" },
+    price: { en: "THB 1,300 /sqm/mo (rent + service)", zh: "1,300泰铢/平方米/月（租金+服务费）" },
+    summary: {
+      en: "Grade A · 42F · official fact sheet · OT from THB 2/sqm/hr · MRT Exit 2",
+      zh: "甲级 · 42层 · 官方Fact Sheet · 加班空调起2泰铢/㎡/时 · MRT Exit 2"
+    },
+    media: {
+      photos: [
+        "presentation-assets/singha-fs-01.png",
+        "presentation-assets/singha-fs-02.png",
+        "presentation-assets/singha-fs-03.png",
+        "presentation-assets/singha-fs-04.png",
+        "presentation-assets/singha-fs-05.png",
+        "presentation-assets/singha-fs-06.png",
+        "presentation-assets/singha-fs-07-floorplan.png"
+      ],
+      pdf: "presentation-assets/singha-factsheet.pdf",
+      pdfs: [
+        { href: "presentation-assets/singha-factsheet.pdf", en: "Open Singha Complex Fact Sheet (PDF)", zh: "打开 Singha Complex Fact Sheet（PDF）" }
+      ]
+    },
+    facts: {
+      en: [
+        ["Address", "1788 New Phetchaburi Rd, Bang Kapi, Huai Khwang"],
+        ["MRT", "Exit 2 (Singha Complex) — Asoke–Phetchaburi"],
+        ["Floors / NLA", "42F · 60,000 sqm · opened Q3 2018"],
+        ["Rent + service", "THB 1,300 /sqm/month"],
+        ["Lease / deposit", "3 years · 3 months deposit"],
+        ["Ceiling", "3.2 m"],
+        ["A/C hours", "Mon–Fri 08:00–18:00 (chilled water + VAV)"],
+        ["Electricity / water", "THB 6.93 /kWh · THB 20 /m³"],
+        ["Parking", "880 lots · 1 free / 100 sqm · extra THB 2,500/mo + VAT"]
+      ],
+      zh: [
+        ["地址", "1788 新佩奇布里路，Bang Kapi，怀宽"],
+        ["MRT", "Exit 2（Singha Complex）— 阿索克–佩奇布里"],
+        ["楼层 / 可租", "42层 · 60,000㎡ · 2018年Q3开业"],
+        ["租金+服务费", "1,300泰铢/平方米/月"],
+        ["租期 / 押金", "3年 · 押金3个月"],
+        ["层高", "3.2米"],
+        ["空调时段", "周一至周五 08:00–18:00（冷冻水+VAV）"],
+        ["电费 / 水费", "6.93泰铢/度 · 20泰铢/立方米"],
+        ["停车", "880车位 · 每100㎡免1车位 · 额外2,500/月+VAT"]
+      ]
+    },
+    rent: {
+      en: [
+        "Official asking: THB 1,300 /sqm/month (rent + service fee) — Singha Estate Fact Sheet.",
+        "Lease term 3 years · deposit 3 months.",
+        "OT A/C Mon–Fri 18:00–22:00: THB 2 /sqm/hr (min THB 1,500/hr); 22:00–08:00: THB 3 /sqm/hr (min THB 1,800/hr).",
+        "OT A/C Sat/Sun/holiday 08:00–22:00: THB 2 /sqm/hr (min 1,500); 22:00–08:00: THB 3 /sqm/hr (min 1,800).",
+        "Phone line install THB 8,000/line (non-refundable); special line THB 50,000 then THB 30,000/line — excl. VAT.",
+        "Tenant pays stamp duty + VAT; tenant pays 50% of Land & Building Tax."
+      ],
+      zh: [
+        "官方询价：1,300泰铢/平方米/月（租金+服务费）— Singha Estate Fact Sheet。",
+        "租期3年 · 押金3个月。",
+        "加班空调 周一至五 18:00–22:00：2泰铢/㎡/时（最低1,500/时）；22:00–08:00：3泰铢/㎡/时（最低1,800/时）。",
+        "加班空调 周末/假日 08:00–22:00：2泰铢/㎡/时（最低1,500）；22:00–08:00：3泰铢/㎡/时（最低1,800）。",
+        "电话线安装费 8,000泰铢/线（不退）；专线 50,000 其后 30,000/线 — 不含VAT。",
+        "租户承担印花税+VAT；土地建筑税由租户承担50%。"
+      ]
+    },
+    layout: {
+      en: [
+        "Handover: acoustic T-bar ceiling, LED lighting, A/C ducting + VAV units/diffusers, sprinkler + smoke detectors, cement screed floor.",
+        "Lifts: Low 4 / Mid 8 / High 4 passenger (1,600 kg) + service/fireman + 2 car-park lifts.",
+        "Security: 24h IP cameras, 24h guards, turnstile access, visitor management, destination-control lifts.",
+        "Amenities: retail & restaurants, cafeteria, shower on every floor, EV charging, co-working in retail podium.",
+        "Floor-plan page included in fact sheet gallery (page 7)."
+      ],
+      zh: [
+        "交付标准：吸音T-Bar吊顶、LED灯、空调风管+VAV风口、喷淋+烟感、水泥找平地面。",
+        "电梯：低区4 / 中区8 / 高区4（1,600kg）+ 货梯/消防梯 + 2部车库梯。",
+        "安防：24小时摄像头与保安、闸机门禁、访客管理、目的地电梯。",
+        "配套：零售餐饮、食堂、每层淋浴间、电动车充电、商业区共创空间。",
+        "Fact Sheet相册含平面图（第7页）。"
+      ]
+    },
+    good: {
+      en: "Official landlord package + MRT Exit 2 — strongest transit among options if Grade A image matters.",
+      zh: "业主官方资料包 + MRT Exit 2 — 若重视甲级形象与通勤，交通优势最强。"
+    },
+    contacts: [
+      {
+        kind: "direct",
+        name: { en: "Khun Sopit (Singha Estate)", zh: "Khun Sopit（Singha Estate）" },
+        role: { en: "Leasing contact — owner / developer (prefer direct)", zh: "招商联系人 — 业主/开发商（优先直连）" },
+        phone: "081-939-8493",
+        phone2: "02-258-0124 ext. 102",
+        email: "sopit.p@singhaestate.co.th",
+        source: { en: "Your Singha Complex contact sheet", zh: "您提供的 Singha Complex 联系资料" }
+      },
+      {
+        kind: "direct",
+        name: { en: "Singha Estate sales line", zh: "Singha Estate 销售热线" },
+        role: { en: "Corporate sales (backup)", zh: "公司销售（备用）" },
+        phone: "084-324-2766",
+        email: "sales@singhaestate.co.th",
+        source: { en: "singhaestate.co.th", zh: "singhaestate.co.th" }
+      }
+    ],
+    notes: {
+      en: "Updated from Singha Estate official Office Fact Sheet (SGC). Confirm unit availability & negotiated rate before decision.",
+      zh: "已按 Singha Estate 官方 Office Fact Sheet（SGC）更新。决策前请确认空置单元与可谈价格。"
+    }
+  },
+
+  gtower: {
+    id: "gtower",
+    cls: "gtower",
+    color: "#0ea5e9",
+    maps: "https://office.centralpattana.co.th/office/g-tower/",
+    distClient: { en: "~1.4 km · ~5–8 min", zh: "约1.4公里 · 约5–8分钟" },
+    distMrt: { en: "MRT Phra Ram 9 · walkable (~3–5 min)", zh: "MRT拉玛九站 · 可步行（约3–5分钟）" },
+    name: { en: "G Tower", zh: "G Tower" },
+    status: { en: "Nearby market", zh: "周边市场" },
+    price: { en: "≈ THB 1,000–1,050 /sqm/mo (market)", zh: "约 1,000–1,050泰铢/平方米/月（市场）" },
+    summary: {
+      en: "Grade A · opp. Central Rama 9 · CPN direct leasing",
+      zh: "甲级 · Central Rama 9对面 · CPN直连招商"
+    },
+    media: { photos: [] },
+    facts: {
+      en: [
+        ["Owner", "Central Pattana (CPN)"],
+        ["Position", "Rama IX / Ratchada — premium Grade A"],
+        ["Asking rent", "≈ THB 1,000–1,050 /sqm/mo (market)"],
+        ["Vs client", "~1.4 km · short drive"],
+        ["Vs MRT", "Phra Ram 9 — walkable / linked"],
+        ["Data note", "Market ask — confirm unit & terms"]
+      ],
+      zh: [
+        ["业主", "Central Pattana（CPN）"],
+        ["位置", "拉玛九/拉差达 — 甲级优质"],
+        ["询价租金", "约 1,000–1,050泰铢/平方米/月（市场）"],
+        ["对客户", "约1.4公里 · 短途驾车"],
+        ["对MRT", "拉玛九站 — 可步行/连通"],
+        ["数据说明", "市场询价 — 请确认单元与条件"]
+      ]
+    },
+    rent: {
+      en: [
+        "Public market ask ≈ THB 1,000–1,050 /sqm/month (JLL / market listings).",
+        "Units marketed ~105–1,500 sqm · LEED Gold North Tower notes.",
+        "Prefer CPN direct line below — avoid unnecessary broker markup when possible."
+      ],
+      zh: [
+        "公开市场询价约 1,000–1,050泰铢/平方米/月（JLL/市场挂牌）。",
+        "推介单元约105–1,500㎡ · North Tower有LEED Gold说明。",
+        "优先使用下方CPN直连 — 尽量减少中介加价。"
+      ]
+    },
+    layout: {
+      en: [
+        "Grade A twin towers above retail podium next to Central Rama 9.",
+        "Column-free plates, destination-control lifts, executive WCs / pantry per floor (marketing).",
+        "Strong image address if HQ / client-facing brand matters."
+      ],
+      zh: [
+        "甲级双子塔 + 商业裙楼，紧邻Central Rama 9。",
+        "无柱平面、目的地电梯、每层行政卫浴/茶水间（宣传资料）。",
+        "若重视总部形象/对外品牌，地址优势明显。"
+      ]
+    },
+    contacts: [
+      {
+        kind: "direct",
+        name: { en: "Central Pattana (CPN) — offices leasing", zh: "Central Pattana（CPN）— 办公招商" },
+        role: { en: "Owner leasing hotline (prefer direct)", zh: "业主招商热线（优先直连）" },
+        phone: "02-021-9999",
+        email: "call_center@cpn.co.th",
+        source: { en: "office.centralpattana.co.th (official)", zh: "office.centralpattana.co.th（官网）" }
+      }
+    ],
+    notes: {
+      en: "Nearby Grade A. Higher ask than SKYY9/V.ONE/CW — useful benchmark.",
+      zh: "周边甲级。询价高于SKYY9/V.ONE/CW — 用作对照。"
+    }
+  },
+
+  unilever: {
+    id: "unilever",
+    cls: "unilever",
+    color: "#22c55e",
+    maps: "https://maps.app.goo.gl/",
+    distClient: { en: "~1.2 km · ~5–7 min", zh: "约1.2公里 · 约5–7分钟" },
+    distMrt: { en: "MRT Phra Ram 9 · ~330 m / ~4 min walk", zh: "MRT拉玛九站 · 约330米/步行约4分钟" },
+    name: { en: "Unilever House (R House)", zh: "Unilever House（R House）" },
+    status: { en: "Nearby market", zh: "周边市场" },
+    price: { en: "≈ THB 880 /sqm/mo (market)", zh: "约 880泰铢/平方米/月（市场）" },
+    summary: {
+      en: "161 Rama IX · large floor plates · mid ask near MRT",
+      zh: "拉玛九路161号 · 大面积楼层 · 中等价近MRT"
+    },
+    media: { photos: [] },
+    facts: {
+      en: [
+        ["Address", "161 Rama IX Rd, Huai Khwang"],
+        ["Asking rent", "≈ THB 880 /sqm/mo (market)"],
+        ["Floor plate", "Large (~3,000 sqm marketed)"],
+        ["Vs client", "~1.2 km"],
+        ["Vs MRT", "Phra Ram 9 ~4 min walk"],
+        ["Data note", "Also listed as R House — confirm availability"]
+      ],
+      zh: [
+        ["地址", "怀宽拉玛九路161号"],
+        ["询价租金", "约 880泰铢/平方米/月（市场）"],
+        ["标准层", "大面积（宣传约3,000㎡）"],
+        ["对客户", "约1.2公里"],
+        ["对MRT", "拉玛九站步行约4分钟"],
+        ["数据说明", "亦称R House — 请确认空置"]
+      ]
+    },
+    rent: {
+      en: [
+        "Public ask ≈ THB 880 /sqm/month (OfficeBangkok / BOF / broker listings).",
+        "Often marketed for larger footprints; verify smaller-unit availability.",
+        "No stable building-owner hotline published — contacts below are brokers."
+      ],
+      zh: [
+        "公开询价约 880泰铢/平方米/月（OfficeBangkok / BOF / 中介挂牌）。",
+        "多见大面积推介；小单元需另行确认。",
+        "未找到稳定业主热线 — 下方多为中介联系人。"
+      ]
+    },
+    layout: {
+      en: [
+        "Low-/mid-rise campus-style plate with high ceiling (~3.5 m marketing).",
+        "Near Central Rama 9 / Jodd Fairs — lively after-work area.",
+        "Good price check vs SKYY9 (~1,100–1,200 furnished) and V.ONE."
+      ],
+      zh: [
+        "偏校园式大平面，层高宣传约3.5米。",
+        "靠近Central Rama 9 / Jodd Fairs — 下班配套好。",
+        "可对照SKYY9（精装约1,100–1,200）与V.ONE。"
+      ]
+    },
+    contacts: [
+      {
+        kind: "agent",
+        name: { en: "Saranrom Group", zh: "Saranrom Group" },
+        role: { en: "Broker listing — Unilever House / R House", zh: "中介挂牌 — Unilever House / R House" },
+        phone: "085-552-6556",
+        phone2: "095-639-0259",
+        email: "saranromgroup@gmail.com",
+        source: { en: "Public listing (Saranrom)", zh: "公开挂牌（Saranrom）" }
+      },
+      {
+        kind: "agent",
+        name: { en: "Jirayus (JB Officiency)", zh: "Jirayus（JB Officiency）" },
+        role: { en: "Broker — OfficeBangkok listing", zh: "中介 — OfficeBangkok挂牌" },
+        phone: "081-682-4898",
+        email: "jirayus.b@gmail.com",
+        source: { en: "officebangkok.com (updated listing)", zh: "officebangkok.com（更新挂牌）" }
+      },
+      {
+        kind: "note",
+        name: { en: "Direct landlord line", zh: "业主直连" },
+        role: { en: "Not found online — try building lobby / ask CPN neighbors", zh: "网上未找到 — 可问大堂或周边大楼" },
+        phone: "",
+        source: { en: "Web search — no official hotline", zh: "网络检索 — 无官方热线" }
+      }
+    ],
+    notes: {
+      en: "Mid-ask nearby tower. Useful price benchmark — not a confirmed offer.",
+      zh: "周边中等价。用作价格对照 — 非确认报价。"
+    }
+  },
+
+  aia: {
+    id: "aia",
+    cls: "aia",
+    color: "#f87171",
+    maps: "https://property.jll.co.th/en-th/aia-capital-center",
+    distClient: { en: "~1.6 km · ~6–10 min", zh: "约1.6公里 · 约6–10分钟" },
+    distMrt: { en: "MRT Thailand Cultural Centre · ~50–250 m walk", zh: "MRT泰国文化中心站 · 步行约50–250米" },
+    name: { en: "AIA Capital Center", zh: "AIA Capital Center" },
+    status: { en: "Nearby market", zh: "周边市场" },
+    price: { en: "≈ THB 1,000 /sqm/mo (market)", zh: "约 1,000泰铢/平方米/月（市场）" },
+    summary: {
+      en: "Grade A · Ratchada / TCC · same corridor as CW",
+      zh: "甲级 · 拉差达/文化中心 · 与CW同走廊"
+    },
+    media: { photos: [] },
+    facts: {
+      en: [
+        ["Address", "89 Ratchadaphisek Rd"],
+        ["Asking rent", "≈ THB 1,000 /sqm/mo (market)"],
+        ["Spec", "Grade A · LEED Gold · ~54,000 sqm NLA"],
+        ["Vs client", "~1.6 km"],
+        ["Vs MRT", "TCC — ~1–3 min walk"],
+        ["Data note", "Leasing mostly via agencies — no AIA direct line found"]
+      ],
+      zh: [
+        ["地址", "拉差达披色路89号"],
+        ["询价租金", "约 1,000泰铢/平方米/月（市场）"],
+        ["规格", "甲级 · LEED Gold · 净可租约54,000㎡"],
+        ["对客户", "约1.6公里"],
+        ["对MRT", "文化中心站 — 步行约1–3分钟"],
+        ["数据说明", "招商多见中介 — 未找到AIA直连热线"]
+      ]
+    },
+    rent: {
+      en: [
+        "Public ask ≈ THB 1,000 /sqm/month (OSBKK / market).",
+        "Typical terms marketed: 3-year lease · 3 mo deposit · Mon–Fri A/C 08:00–18:00.",
+        "Same Ratchada corridor as CW — compare Grade A premium vs CW 750–950."
+      ],
+      zh: [
+        "公开询价约 1,000泰铢/平方米/月（OSBKK/市场）。",
+        "常见条件：租期3年 · 押金3个月 · 空调周一至五 08:00–18:00。",
+        "与CW同拉差达走廊 — 可对比甲级溢价与CW的750–950。"
+      ]
+    },
+    layout: {
+      en: [
+        "34-storey Grade A with retail podium; large plates ~1,780–1,900 sqm.",
+        "Very close to MRT TCC — strong transit for staff.",
+        "Best as Grade A alternative if CW image/spec is not enough."
+      ],
+      zh: [
+        "34层甲级 + 商业裙楼；标准层约1,780–1,900㎡。",
+        "紧邻MRT文化中心 — 员工通勤强。",
+        "若CW形象/规格不够，可作为甲级备选。"
+      ]
+    },
+    contacts: [
+      {
+        kind: "agent",
+        name: { en: "Wathusiri Premamornkij (JLL)", zh: "Wathusiri Premamornkij（JLL）" },
+        role: { en: "JLL leasing contact (named)", zh: "JLL招商联系人（具名）" },
+        phone: "02-624-6463",
+        phone2: "098-649-6459",
+        source: { en: "property.jll.co.th (official listing page)", zh: "property.jll.co.th（官方挂牌页）" }
+      },
+      {
+        kind: "agent",
+        name: { en: "Aukit Pronpattanapairoj (C&W)", zh: "Aukit Pronpattanapairoj（C&W）" },
+        role: { en: "Cushman & Wakefield — Head of Office Leasing BKK", zh: "C&W — 曼谷办公租赁负责人" },
+        phone: "080-571-6662",
+        source: { en: "C&W AIA Capital Center listing", zh: "C&W AIA Capital Center挂牌" }
+      },
+      {
+        kind: "note",
+        name: { en: "AIA / building direct", zh: "AIA / 大楼直连" },
+        role: { en: "No public owner leasing hotline found", zh: "未找到公开业主招商热线" },
+        phone: "",
+        source: { en: "Web search — agency channels only", zh: "网络检索 — 仅中介渠道" }
+      }
+    ],
+    notes: {
+      en: "Same corridor as CW. Higher ask — confirm availability & negotiated rate.",
+      zh: "与CW同走廊。询价更高 — 请确认空置与可谈价。"
+    }
+  }
+};
+
+let lang = "en";
+let activeId = null;
+
+function t(key) { return I18N[lang][key] || key; }
+
+function setLang(next) {
+  lang = next;
+  document.body.classList.toggle("lang-zh", lang === "zh");
+  document.getElementById("btn-en").classList.toggle("active", lang === "en");
+  document.getElementById("btn-zh").classList.toggle("active", lang === "zh");
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const k = el.getAttribute("data-i18n");
+    if (I18N[lang][k]) el.textContent = I18N[lang][k];
+  });
+  renderLegend();
+  renderCards();
+  refreshLiveMap();
+  if (activeId && OFFICES[activeId] && !OFFICES[activeId].listOnly) openDrawer(activeId, false);
+}
+
+function renderLegend() {
+  document.getElementById("legend").innerHTML = `
+    <div><span class="sw" style="background:var(--client)"></span>${t("legendClient")}</div>
+    <div><span class="sw" style="background:var(--sky)"></span>SKYY9</div>
+    <div><span class="sw" style="background:var(--vone)"></span>V.ONE</div>
+    <div><span class="sw" style="background:var(--cw)"></span>CW Tower</div>
+    <div><span class="sw" style="background:var(--thai)"></span>Thai Summit</div>
+    <div><span class="sw" style="background:var(--singha)"></span>Singha</div>
+    <div><span class="sw" style="background:var(--gtower)"></span>G Tower</div>
+    <div><span class="sw" style="background:var(--unilever)"></span>Unilever</div>
+    <div><span class="sw" style="background:var(--aia)"></span>AIA</div>
+    <div><span class="sw" style="background:var(--mrt)"></span>${t("legendMrt")}</div>
+  `;
+}
+
+function renderCards() {
+  const root = document.getElementById("cards");
+  const order = ["sky9", "vone", "cw", "thaiSummit", "singha", "gtower", "unilever", "aia"];
+  root.innerHTML = order.map((id) => {
+    const o = OFFICES[id];
+    const badge = o.cls === "wait" ? "wait" : o.cls;
+    const primary = (o.contacts || []).find((x) => x.phone) || null;
+    const contactHtml = primary
+      ? `<div class="contact-line">${primary.name[lang]} · <a href="tel:${primary.phone.replace(/[^0-9+]/g,"")}">${primary.phone}</a></div>`
+      : "";
+    return `
+      <button class="card ${activeId === id ? "active" : ""}" type="button" data-id="${id}">
+        <div class="row">
+          <h3>${o.name[lang]}</h3>
+          <span class="badge ${badge}">${o.status[lang]}</span>
+        </div>
+        <div class="meta">${o.summary[lang]}</div>
+        ${o.distClient ? `<div class="meta">${t("fromClient")}: <b style="color:#e2e8f0">${o.distClient[lang]}</b></div>` : ""}
+        ${o.distMrt ? `<div class="meta">${t("toMrt")}: <b style="color:#e2e8f0">${o.distMrt[lang]}</b></div>` : ""}
+        <div class="price">${o.price[lang]}</div>
+        ${contactHtml}
+      </button>
+    `;
+  }).join("");
+  root.querySelectorAll(".card").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      if (OFFICES[id].listOnly) {
+        activeId = id;
+        renderCards();
+        return;
+      }
+      openDrawer(id);
+    });
+  });
+}
+
+/* ===== Live map (Leaflet + Esri tiles, Google Maps embed) ===== */
+let map = null;
+let streetLayer = null;
+let satLayer = null;
+let overlayLayer = null;
+let markerById = {};
+let mapMode = "street";
+
+function pinIcon(color, label, small) {
+  const size = small ? 12 : 16;
+  return L.divIcon({
+    className: "pin-icon",
+    html: `<div class="pin-bubble"><span>${label}</span><i style="background:${color};width:${size}px;height:${size}px"></i></div>`,
+    iconSize: [120, 40],
+    iconAnchor: [60, 40]
+  });
+}
+
+function haversineKm(a, b) {
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLon = (b.lon - a.lon) * Math.PI / 180;
+  const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+
+function fmtKm(km) {
+  if (km < 1) return `~${Math.round(km * 1000)} m`;
+  return `~${km.toFixed(1)} km`;
+}
+
+function buildGoogleEmbedUrl() {
+  const c = COORDS.client;
+  return `https://www.google.com/maps?q=${c.lat},${c.lon}&z=15&hl=${lang === "zh" ? "zh-CN" : "en"}&output=embed`;
+}
+
+function buildGoogleDirectionsUrl() {
+  const c = COORDS.client;
+  const stops = ["sky9","vone","cw","thaiSummit","singha","gtower","unilever","aia"]
+    .map((id) => `${COORDS[id].lat},${COORDS[id].lon}`).join("/");
+  return `https://www.google.com/maps/dir/${c.lat},${c.lon}/${stops}`;
+}
+
+function setMapMode(mode) {
+  mapMode = mode;
+  document.getElementById("btnStreet").classList.toggle("on", mode === "street");
+  document.getElementById("btnSat").classList.toggle("on", mode === "sat");
+  document.getElementById("btnGmap").classList.toggle("on", mode === "google");
+  const fallback = document.getElementById("mapFallback");
+  if (mode === "google") {
+    fallback.classList.add("show");
+    document.getElementById("gmapFrame").src = buildGoogleEmbedUrl();
+    return;
+  }
+  fallback.classList.remove("show");
+  if (!map) return;
+  if (mode === "street") {
+    if (map.hasLayer(satLayer)) map.removeLayer(satLayer);
+    if (!map.hasLayer(streetLayer)) streetLayer.addTo(map);
+  } else {
+    if (map.hasLayer(streetLayer)) map.removeLayer(streetLayer);
+    if (!map.hasLayer(satLayer)) satLayer.addTo(map);
+  }
+}
+
+function initLiveMap() {
+  if (map) return;
+  map = L.map("liveMap", { zoomControl: true, scrollWheelZoom: true }).setView(
+    [COORDS.client.lat, COORDS.client.lon], 15
+  );
+  streetLayer = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    { attribution: "Esri · OpenStreetMap contributors", maxZoom: 19 }
+  );
+  satLayer = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { attribution: "Esri World Imagery", maxZoom: 19 }
+  );
+  streetLayer.addTo(map);
+  overlayLayer = L.layerGroup().addTo(map);
+  document.getElementById("openGmaps").href = buildGoogleDirectionsUrl();
+  refreshLiveMap();
+  setTimeout(() => map.invalidateSize(), 250);
+}
+
+function refreshLiveMap() {
+  if (!map || !overlayLayer) return;
+  overlayLayer.clearLayers();
+  markerById = {};
+  const labels = {
+    client: lang === "zh" ? "客户现场 555 ทะเล" : "Client · 555 Thale",
+    sky9: "SKYY9", vone: "V.ONE", cw: "CW Tower",
+    thaiSummit: "Thai Summit", singha: "Singha",
+    gtower: "G Tower", unilever: "Unilever", aia: "AIA",
+    mrt9: "MRT Phra Ram 9",
+    mrtcc: lang === "zh" ? "MRT文化中心" : "MRT Cultural Centre",
+    mrtphet: lang === "zh" ? "MRT佩奇布里" : "MRT Phetchaburi"
+  };
+  const colors = {
+    client: "#ef4444", sky9: "#3b82f6", vone: "#14b8a6",
+    cw: "#a78bfa", thaiSummit: "#f59e0b", singha: "#ec4899",
+    gtower: "#0ea5e9", unilever: "#22c55e", aia: "#f87171",
+    mrt9: "#94a3b8", mrtcc: "#94a3b8", mrtphet: "#94a3b8"
+  };
+  ["client", "mrt9", "mrtcc", "mrtphet", "sky9", "vone", "cw", "thaiSummit", "singha", "gtower", "unilever", "aia"].forEach((id) => {
+    const c = COORDS[id];
+    const m = L.marker([c.lat, c.lon], {
+      icon: pinIcon(colors[id], labels[id], id.startsWith("mrt")),
+      zIndexOffset: id === "client" ? 600 : (id.startsWith("mrt") ? 100 : 400)
+    });
+    if (OFFICES[id]) {
+      m.on("click", () => openDrawer(id));
+      m.bindTooltip(OFFICES[id].name[lang], { direction: "top", offset: [0, -28] });
+    } else {
+      m.bindTooltip(labels[id], { direction: "top", offset: [0, -28] });
+    }
+    m.addTo(overlayLayer);
+    markerById[id] = m;
+  });
+  const routes = [
+    { id: "sky9", color: "#3b82f6", mrt: "mrt9" },
+    { id: "vone", color: "#14b8a6", mrt: "mrt9" },
+    { id: "cw", color: "#a78bfa", mrt: "mrtcc" },
+    { id: "thaiSummit", color: "#f59e0b", mrt: "mrtphet" },
+    { id: "singha", color: "#ec4899", mrt: "mrtphet" },
+    { id: "gtower", color: "#0ea5e9", mrt: "mrt9" },
+    { id: "unilever", color: "#22c55e", mrt: "mrt9" },
+    { id: "aia", color: "#f87171", mrt: "mrtcc" }
+  ];
+  const bounds = [[COORDS.client.lat, COORDS.client.lon]];
+  routes.forEach((r) => {
+    const to = COORDS[r.id];
+    const mrt = COORDS[r.mrt];
+    const km = haversineKm(COORDS.client, to);
+    L.polyline([[COORDS.client.lat, COORDS.client.lon], [to.lat, to.lon]], {
+      color: r.color, weight: 3, dashArray: "8 6", opacity: 0.9
+    }).addTo(overlayLayer);
+    L.marker([(COORDS.client.lat + to.lat) / 2, (COORDS.client.lon + to.lon) / 2], {
+      icon: L.divIcon({
+        className: "dist-label",
+        html: `<div class="dist-label">${fmtKm(km)}</div>`,
+        iconSize: [70, 22], iconAnchor: [35, 11]
+      }),
+      interactive: false
+    }).addTo(overlayLayer);
+    const kmM = haversineKm(to, mrt);
+    L.polyline([[to.lat, to.lon], [mrt.lat, mrt.lon]], {
+      color: r.color, weight: 2, dashArray: "4 6", opacity: 0.55
+    }).addTo(overlayLayer);
+    L.marker([(to.lat + mrt.lat) / 2, (to.lon + mrt.lon) / 2], {
+      icon: L.divIcon({
+        className: "dist-label",
+        html: `<div class="dist-label" style="opacity:.85">MRT ${fmtKm(kmM)}</div>`,
+        iconSize: [95, 22], iconAnchor: [47, 11]
+      }),
+      interactive: false
+    }).addTo(overlayLayer);
+    bounds.push([to.lat, to.lon], [mrt.lat, mrt.lon]);
+  });
+  try { map.fitBounds(bounds, { padding: [48, 48], maxZoom: 16 }); } catch (e) {}
+  document.getElementById("openGmaps").href = buildGoogleDirectionsUrl();
+  if (mapMode === "google") document.getElementById("gmapFrame").src = buildGoogleEmbedUrl();
+}
+
+function openDrawer(id, setActive = true) {
+  const o = OFFICES[id];
+  if (!o || o.listOnly) return;
+  activeId = id;
+  if (setActive) {
+    renderCards();
+    if (markerById[id] && map) map.panTo([COORDS[id].lat, COORDS[id].lon], { animate: true });
+  }
+  document.getElementById("drawerBadge").innerHTML = `<span class="badge ${o.cls}">${o.status[lang]}</span>`;
+  document.getElementById("drawerTitle").textContent = o.name[lang];
+  document.getElementById("drawerSub").textContent = o.summary[lang];
+  const photos = (o.media.photos || []).map((src, i) => {
+    const wide = i === 0 || /cw-unit|floorplan|plan/i.test(src);
+    return `<img src="${src}" alt="" class="${wide ? "wide" : ""}" loading="lazy" title="${lang === "zh" ? "点击放大" : "Click to enlarge"}" />`;
+  }).join("");
+  const video = o.media.video ? `<video class="wide" controls preload="metadata" src="${o.media.video}"></video>` : "";
+  let pdfLinks = "";
+  if (o.media.pdfs && o.media.pdfs.length) {
+    pdfLinks = o.media.pdfs.map((p) => `<a class="link" href="${p.href}" target="_blank" rel="noopener">${p[lang]}</a>`).join(" ");
+  } else if (o.media.pdf) {
+    pdfLinks = `<a class="link" href="${o.media.pdf}" target="_blank" rel="noopener">${lang === "zh" ? "打开平面图 PDF" : "Open floor-plan PDF"}</a>`;
+  }
+  const facts = o.facts[lang].map(([l, v]) => `<div class="box"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
+  const rent = `<ul>${o.rent[lang].map((x) => `<li>${x}</li>`).join("")}</ul>`;
+  const layout = `<ul>${o.layout[lang].map((x) => `<li>${x}</li>`).join("")}</ul>`;
+  let unitsHtml = "";
+  if (o.units) {
+    const heads = o.units.headers[lang].map((h) => `<th>${h}</th>`).join("");
+    const rows = o.units.rows.map((r) => `<tr>${r[lang].map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
+    unitsHtml = `<div class="block"><h4>${lang === "zh" ? "可租单元一览" : "Available units"}</h4><div style="overflow-x:auto"><table class="unit-table"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  const gLink = `https://www.google.com/maps?q=${COORDS[id].lat},${COORDS[id].lon}`;
+  const contactsHtml = (o.contacts && o.contacts.length)
+    ? `<div class="contact-box"><h4>${lang === "zh" ? "联系人" : "Contacts"}</h4>${
+        o.contacts.map((ct) => {
+          const tag = ct.kind === "direct"
+            ? `<span class="tag-direct">${lang === "zh" ? "直连" : "DIRECT"}</span>`
+            : ct.kind === "agent"
+              ? `<span class="tag-agent">${lang === "zh" ? "中介" : "AGENT"}</span>`
+              : "";
+          const phones = [ct.phone, ct.phone2].filter(Boolean).map((p) =>
+            `<a href="tel:${String(p).replace(/[^0-9+]/g,"")}">${p}</a>`).join(" · ");
+          const email = ct.email ? ` · <a href="mailto:${ct.email}">${ct.email}</a>` : "";
+          const src = ct.source ? `<div class="role">${ct.source[lang]}</div>` : "";
+          return `<div class="contact-item"><div class="who">${ct.name[lang]}${tag}</div><div class="role">${ct.role[lang]}</div><div>${phones}${email}</div>${src}</div>`;
+        }).join("")
+      }</div>`
+    : "";
+  document.getElementById("drawerBody").innerHTML = `
+    <div class="gallery" id="drawerGallery">${video}${photos}</div>
+    ${pdfLinks}
+    ${contactsHtml}
+    <div class="kv">
+      <div class="box"><div class="l">${t("fromClient")}</div><div class="v">${o.distClient[lang]}</div></div>
+      <div class="box"><div class="l">${t("toMrt")}</div><div class="v">${o.distMrt[lang]}</div></div>
+      ${facts}
+    </div>
+    ${unitsHtml}
+    <div class="block"><h4>${lang === "zh" ? "租金与条件" : "Rent & terms"}</h4>${rent}</div>
+    <div class="block"><h4>${lang === "zh" ? "户型 / 房间布局" : "Room layout"}</h4>${layout}</div>
+    ${o.good ? `<div class="ok">${o.good[lang]}</div>` : ""}
+    ${o.notes ? `<div class="warn">${o.notes[lang]}</div>` : ""}
+    <a class="link" href="${gLink}" target="_blank" rel="noopener">${lang === "zh" ? "在 Google 地图中打开此点" : "Open this pin in Google Maps"}</a>
+    <a class="link" href="${o.maps}" target="_blank" rel="noopener">${lang === "zh" ? "原始地图链接" : "Original map link"}</a>
+  `;
+  const galleryImgs = Array.from(document.querySelectorAll("#drawerGallery img"));
+  galleryImgs.forEach((img, idx) => {
+    img.addEventListener("click", () => openLightbox(galleryImgs.map((i) => i.src), idx));
+  });
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("backdrop").classList.add("open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "false");
+}
+let lbSources = [];
+let lbIndex = 0;
+
+function openLightbox(sources, index) {
+  lbSources = sources.filter(Boolean);
+  if (!lbSources.length) return;
+  lbIndex = Math.max(0, Math.min(index || 0, lbSources.length - 1));
+  showLightbox();
+}
+
+function showLightbox() {
+  const box = document.getElementById("lightbox");
+  const img = document.getElementById("lightboxImg");
+  img.src = lbSources[lbIndex];
+  document.getElementById("lightboxCounter").textContent =
+    `${lbIndex + 1} / ${lbSources.length}` + (lang === "zh" ? " · 点击空白处关闭" : " · click outside to close");
+  box.classList.add("open");
+  const showNav = lbSources.length > 1;
+  box.querySelector(".lb-prev").style.display = showNav ? "" : "none";
+  box.querySelector(".lb-next").style.display = showNav ? "" : "none";
+}
+
+function lightboxStep(delta) {
+  if (!lbSources.length) return;
+  lbIndex = (lbIndex + delta + lbSources.length) % lbSources.length;
+  showLightbox();
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+  document.getElementById("lightboxImg").src = "";
+}
+
+function closeDrawer() {
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("backdrop").classList.remove("open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "true");
+}
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("lightbox").classList.contains("open")) {
+    if (e.key === "Escape") closeLightbox();
+    if (e.key === "ArrowLeft") lightboxStep(-1);
+    if (e.key === "ArrowRight") lightboxStep(1);
+    return;
+  }
+  if (e.key === "Escape") closeDrawer();
+});
+
+// Close lightbox when clicking dark area (not the image / buttons)
+document.getElementById("lightbox").addEventListener("click", (e) => {
+  if (e.target.id === "lightbox" || e.target.id === "lightboxImg" && e.detail === 2) {
+    // single click on backdrop closes; double-click on image also closes
+  }
+  if (e.target.id === "lightbox") closeLightbox();
+});
+document.getElementById("lightboxImg").addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+setLang("en");
+initLiveMap();
+</script>
+</body>
+</html>

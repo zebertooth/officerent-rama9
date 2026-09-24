@@ -1,0 +1,16 @@
+# Dependencies / junk
+node_modules/
+singha/node_modules/
+package-lock.json
+.DS_Store
+Thumbs.db
+*.tmp
+_verify.js
+_patch-contacts.js
+
+# Keep source folders local-only if duplicated in presentation-assets
+# (uncomment to shrink repo further)
+# sky9/
+# v.tower/
+# cw tower/
+# singha/
